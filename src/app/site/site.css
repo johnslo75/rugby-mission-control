@@ -1,0 +1,64 @@
+.site-root {
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.site-root .font-headline {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+/* Site nav */
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #fff;
+  border-bottom: 2px solid #00C853;
+}
+
+/* Category pill */
+.cat-pill {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  background: #00C853;
+  color: #fff;
+}
+
+.cat-pill.ireland    { background: #00C853; }
+.cat-pill.world-cup  { background: #1d4ed8; }
+.cat-pill.shithousery { background: #7c3aed; }
+.cat-pill.hot-takes  { background: #dc2626; }
+.cat-pill.tactical   { background: #d97706; }
+.cat-pill.underdog   { background: #ea580c; }
+
+/* Article body typography */
+.article-body p {
+  margin-bottom: 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #1a1a1a;
+}
+
+.article-body h2 {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 2rem 0 1rem;
+  color: #1a1a1a;
+}
+
+/* Image placeholder */
+.img-placeholder {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #f0fdf4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00C853;
+  font-size: 3rem;
+}

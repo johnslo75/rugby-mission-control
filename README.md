@@ -1,74 +1,94 @@
-# Rugby Shithousery — Mission Control
+# Rugby Shithousery
 
-Daily operations dashboard for Rugby Shithousery content creation.
+Two apps, one Next.js codebase:
+
+| URL | What it is |
+|-----|-----------|
+| `rugbyshithousery.com` | Public rugby news & opinion site |
+| `hub.rugbyshithousery.com` | Mission Control dashboard |
 
 ---
 
 ## Local Development
 
-### 1. Install dependencies
-
 ```bash
 npm install
-```
-
-### 2. Run locally
-
-```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+- `localhost:3000` → redirects to `/hub` (Mission Control)
+- `localhost:3000/hub` → Mission Control
+- `localhost:3000/site` → Public website
 
 ---
 
-## Deploy to Vercel
+## Deploy to Railway
 
 ### Step 1 — Push to GitHub
 
 ```bash
-git init
 git add .
-git commit -m "Initial commit"
-# Create a new repo on GitHub, then:
-git remote add origin https://github.com/YOUR_USERNAME/rugby-mission-control.git
-git push -u origin main
+git commit -m "Your message"
+git push
 ```
 
-### Step 2 — Connect to Vercel
+Railway auto-deploys on every push.
 
-1. Go to [vercel.com](https://vercel.com) and sign in.
-2. Click **Add New → Project**.
-3. Import your GitHub repository.
-4. Leave all settings as defaults — Vercel auto-detects Next.js.
-5. Click **Deploy**.
+### Step 2 — Environment Variables (Railway → Variables)
 
-Your app will be live at `https://your-project-name.vercel.app`.
+```
+ANTHROPIC_API_KEY=sk-ant-...
+NEXT_PUBLIC_SITE_URL=https://rugbyshithousery.com
+NEXT_PUBLIC_HUB_URL=https://hub.rugbyshithousery.com
+```
+
+### Step 3 — Domains (Railway → Settings → Networking → Domains)
+
+Add both:
+- `rugbyshithousery.com`
+- `hub.rugbyshithousery.com`
+
+### Step 4 — Cloudflare DNS
+
+For the hub subdomain, add a second CNAME record:
+
+| Type | Name | Target | Proxy |
+|------|------|--------|-------|
+| CNAME | hub | `your-app.up.railway.app` | DNS only (grey cloud) |
 
 ---
 
-## Password Protection (Vercel Pro / Teams)
+## Architecture
 
-To keep the dashboard private:
+```
+src/
+  app/
+    site/          ← rugbyshithousery.com (public website)
+      page.tsx     ← homepage
+      [slug]/      ← article pages
+      category/    ← category pages
+    hub/           ← hub.rugbyshithousery.com (Mission Control)
+      page.tsx     ← dashboard
+    api/           ← shared API routes
+      checklist/
+      content/
+      performance/
+      settings/
+      stories/
+      scan/
+      scans/
+    components/    ← shared hub components
+  middleware.ts    ← subdomain routing
+data/
+  stories.json     ← public site content
+  checklist.json
+  content.json
+  performance.json
+  scans.json
+  settings.json
+```
 
-1. Open your project on the Vercel dashboard.
-2. Go to **Settings → Password Protection**.
-3. Enable it and set a password.
-4. Anyone visiting the URL will be prompted for the password.
+## Data Persistence Note
 
-> Note: Password Protection requires a Vercel Pro or Teams plan.
-
----
-
-## Data
-
-All data is stored in flat JSON files in the `/data` folder:
-
-| File | Contents |
-|------|----------|
-| `data/checklist.json` | Daily checklist completions |
-| `data/content.json` | Content ideas log |
-| `data/performance.json` | Posted content performance |
-| `data/settings.json` | Follower count and app settings |
-
-**Important on Vercel:** Vercel's serverless environment has an ephemeral filesystem — writes to `/data` will not persist between deployments or serverless function restarts. For a permanent solution, migrate the API routes to use a database like [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres), [PlanetScale](https://planetscale.com), or store the JSON in a GitHub Gist / S3 bucket. For local use or a self-hosted server the current JSON approach works perfectly.
+JSON files persist between Railway restarts but reset on redeploy.
+For permanent persistence, migrate to Railway Postgres.

@@ -7,12 +7,7 @@ const STAGES = [
     id: "results",
     label: "Results & News",
     icon: "📰",
-    sources: [
-      "Google News alerts",
-      "RugbyPass",
-      "RTE Sport",
-      "World Rugby official",
-    ],
+    sources: ["Google News alerts", "RugbyPass", "RTE Sport", "World Rugby official"],
   },
   {
     id: "fan",
@@ -86,50 +81,44 @@ export default function ChecklistPanel() {
     <div className="panel">
       <div className="panel-header">
         <h2 className="panel-title">Daily Checklist</h2>
-        <span className="text-xs text-gray-500">{today}</span>
+        <span className="text-xs text-gray-400">{today}</span>
       </div>
 
       {/* Progress bar */}
       <div className="mb-5">
-        <div className="flex justify-between text-xs text-gray-400 mb-1.5">
+        <div className="flex justify-between text-xs text-gray-500 mb-1.5">
           <span>{done}/{total} sources</span>
           <span className={pct === 100 ? "text-[#00C853] font-semibold" : ""}>{pct}%{pct === 100 ? " ✓ Complete!" : ""}</span>
         </div>
-        <div className="h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-300"
-            style={{
-              width: `${pct}%`,
-              background: pct === 100 ? "#00C853" : "linear-gradient(90deg, #00C853, #00a844)",
-            }}
+            style={{ width: `${pct}%`, background: "#00C853" }}
           />
         </div>
-        {saving && <p className="text-xs text-gray-500 mt-1">Saving…</p>}
+        {saving && <p className="text-xs text-gray-400 mt-1">Saving…</p>}
         {!saving && lastSaved && (
-          <p className="text-xs text-gray-600 mt-1">
-            Saved {new Date(lastSaved).toLocaleTimeString()}
-          </p>
+          <p className="text-xs text-gray-400 mt-1">Saved {new Date(lastSaved).toLocaleTimeString()}</p>
         )}
       </div>
 
-      {/* Stages */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {STAGES.map((stage) => {
           const stageDone = stage.sources.filter((s) => checked[`${stage.id}__${s}`]).length;
           const stageAll = stage.sources.length;
           const complete = stageDone === stageAll;
           return (
-            <div key={stage.id} className="bg-[#111] rounded-lg border border-[#1e1e1e] overflow-hidden">
-              <div className={`flex items-center justify-between px-3 py-2 border-b border-[#1e1e1e] ${complete ? "bg-[#0d1f12]" : ""}`}>
-                <span className="text-sm font-semibold text-white flex items-center gap-2">
+            <div key={stage.id} className={`rounded-lg border overflow-hidden ${complete ? "border-[#00C853]/40" : "border-gray-200"}`}>
+              <div className={`flex items-center justify-between px-3 py-2 border-b ${complete ? "bg-emerald-50 border-[#00C853]/20" : "bg-gray-50 border-gray-200"}`}>
+                <span className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                   <span>{stage.icon}</span>
                   <span>{stage.label}</span>
                 </span>
-                <span className={`text-xs font-mono ${complete ? "text-[#00C853]" : "text-gray-500"}`}>
+                <span className={`text-xs font-mono ${complete ? "text-[#00C853]" : "text-gray-400"}`}>
                   {stageDone}/{stageAll}
                 </span>
               </div>
-              <div className="p-2 space-y-1">
+              <div className="p-2 space-y-1 bg-white">
                 {stage.sources.map((src) => {
                   const key = `${stage.id}__${src}`;
                   const isChecked = !!checked[key];
@@ -137,25 +126,18 @@ export default function ChecklistPanel() {
                     <label
                       key={src}
                       className={`flex items-center gap-3 px-2 py-1.5 rounded cursor-pointer transition-colors select-none
-                        ${isChecked ? "bg-[#0d1f12]" : "hover:bg-[#181818]"}`}
+                        ${isChecked ? "bg-emerald-50" : "hover:bg-gray-50"}`}
                     >
                       <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all
-                        ${isChecked ? "bg-[#00C853] border-[#00C853]" : "border-[#333]"}`}>
+                        ${isChecked ? "bg-[#00C853] border-[#00C853]" : "border-gray-300"}`}>
                         {isChecked && (
-                          <svg className="w-2.5 h-2.5 text-black" fill="none" viewBox="0 0 10 8">
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 10 8">
                             <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         )}
                       </div>
-                      <input
-                        type="checkbox"
-                        className="hidden"
-                        checked={isChecked}
-                        onChange={() => toggle(key)}
-                      />
-                      <span className={`text-sm ${isChecked ? "line-through text-gray-500" : "text-gray-300"}`}>
-                        {src}
-                      </span>
+                      <input type="checkbox" className="hidden" checked={isChecked} onChange={() => toggle(key)} />
+                      <span className={`text-sm ${isChecked ? "line-through text-gray-400" : "text-gray-700"}`}>{src}</span>
                     </label>
                   );
                 })}

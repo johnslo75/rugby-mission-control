@@ -45,11 +45,11 @@ export default function Header({ postsThisWeek }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0d0d0d] border-b border-[#1a1a1a] px-4 py-3">
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm px-4 py-3">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900">
               🏉 Rugby Shithousery
               <span className="text-[#00C853]"> — Mission Control</span>
             </h1>
@@ -57,36 +57,22 @@ export default function Header({ postsThisWeek }: Props) {
           <div className="flex flex-wrap gap-3 text-sm">
             <Stat label="FIFA WC 2026" value={`${daysUntil(FIFA_DATE)}d`} />
             <Stat label="RWC 2027" value={`${daysUntil(RWC_DATE)}d`} />
-            <div className="flex items-center gap-2 bg-[#141414] border border-[#222] rounded-lg px-3 py-1.5">
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
               <span className="text-gray-400 text-xs uppercase tracking-wide">Followers</span>
               {editing ? (
                 <div className="flex items-center gap-1.5">
                   <input
-                    className="w-24 bg-[#1a1a1a] border border-[#00C853] rounded px-2 py-0.5 text-white text-sm focus:outline-none"
+                    className="w-24 bg-white border border-[#00C853] rounded px-2 py-0.5 text-gray-900 text-sm focus:outline-none"
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && saveFollowers()}
                     autoFocus
                   />
-                  <button
-                    onClick={saveFollowers}
-                    disabled={saving}
-                    className="text-[#00C853] hover:text-white transition-colors text-xs font-semibold"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditing(false)}
-                    className="text-gray-500 hover:text-white transition-colors text-xs"
-                  >
-                    ✕
-                  </button>
+                  <button onClick={saveFollowers} disabled={saving} className="text-[#00C853] hover:text-green-700 transition-colors text-xs font-semibold">Save</button>
+                  <button onClick={() => setEditing(false)} className="text-gray-400 hover:text-gray-700 transition-colors text-xs">✕</button>
                 </div>
               ) : (
-                <button
-                  onClick={() => { setDraft(String(followers)); setEditing(true); }}
-                  className="text-white font-bold hover:text-[#00C853] transition-colors"
-                >
+                <button onClick={() => { setDraft(String(followers)); setEditing(true); }} className="text-gray-900 font-bold hover:text-[#00C853] transition-colors">
                   {followers.toLocaleString()}
                 </button>
               )}
@@ -101,9 +87,9 @@ export default function Header({ postsThisWeek }: Props) {
 
 function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className="flex items-center gap-2 bg-[#141414] border border-[#222] rounded-lg px-3 py-1.5">
+    <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
       <span className="text-gray-400 text-xs uppercase tracking-wide">{label}</span>
-      <span className={`font-bold ${highlight ? "text-[#00C853]" : "text-white"}`}>{value}</span>
+      <span className={`font-bold ${highlight ? "text-[#00C853]" : "text-gray-900"}`}>{value}</span>
     </div>
   );
 }

@@ -15,9 +15,9 @@ interface ContentEntry {
 }
 
 const STATUS_COLORS: Record<Status, string> = {
-  idea: "bg-blue-900/40 text-blue-300 border-blue-800",
-  "in production": "bg-yellow-900/40 text-yellow-300 border-yellow-800",
-  posted: "bg-green-900/40 text-[#00C853] border-green-800",
+  idea: "bg-blue-50 text-blue-600 border-blue-200",
+  "in production": "bg-amber-50 text-amber-600 border-amber-200",
+  posted: "bg-emerald-50 text-[#00C853] border-emerald-200",
 };
 
 const EMPTY: Omit<ContentEntry, "id"> = {
@@ -112,10 +112,8 @@ export default function ContentPanel({ refreshTrigger }: { refreshTrigger?: numb
       </div>
 
       {showForm && (
-        <form onSubmit={submit} className="mb-5 bg-[#111] border border-[#1e1e1e] rounded-lg p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">
-            {editId ? "Edit Entry" : "New Content Idea"}
-          </h3>
+        <form onSubmit={submit} className="mb-5 bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">{editId ? "Edit Entry" : "New Content Idea"}</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="field-label">Date</label>
@@ -153,21 +151,15 @@ export default function ContentPanel({ refreshTrigger }: { refreshTrigger?: numb
         </form>
       )}
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-4">
-        <input
-          className="field-input flex-1 min-w-[160px] text-sm"
-          placeholder="Search angles, hooks…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <input className="field-input flex-1 min-w-[160px] text-sm" placeholder="Search angles, hooks…" value={search} onChange={(e) => setSearch(e.target.value)} />
         <div className="flex gap-1">
           {(["all", "idea", "in production", "posted"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setFilterStatus(s)}
               className={`px-3 py-1.5 rounded text-xs font-medium transition-colors border
-                ${filterStatus === s ? "bg-[#00C853] text-black border-[#00C853]" : "bg-[#111] text-gray-400 border-[#222] hover:border-[#444]"}`}
+                ${filterStatus === s ? "bg-[#00C853] text-white border-[#00C853]" : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"}`}
             >
               {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
@@ -177,14 +169,14 @@ export default function ContentPanel({ refreshTrigger }: { refreshTrigger?: numb
 
       <div className="space-y-2">
         {filtered.length === 0 && (
-          <p className="text-center text-gray-600 py-8 text-sm">No ideas yet. Hit &quot;+ New Idea&quot; to start.</p>
+          <p className="text-center text-gray-400 py-8 text-sm">No ideas yet. Hit &quot;+ New Idea&quot; to start.</p>
         )}
         {filtered.map((entry) => (
-          <div key={entry.id} className="bg-[#111] border border-[#1e1e1e] rounded-lg p-3 hover:border-[#2a2a2a] transition-colors">
+          <div key={entry.id} className="bg-white border border-gray-200 rounded-lg p-3 hover:border-gray-300 transition-colors">
             <div className="flex items-start justify-between gap-2 mb-1.5">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-gray-500">{entry.date}</span>
-                {entry.match && <span className="text-xs text-gray-400 font-medium">· {entry.match}</span>}
+                <span className="text-xs text-gray-400">{entry.date}</span>
+                {entry.match && <span className="text-xs text-gray-500 font-medium">· {entry.match}</span>}
                 <button
                   onClick={() => cycleStatus(entry)}
                   className={`text-xs px-2 py-0.5 rounded border font-medium transition-opacity hover:opacity-80 ${STATUS_COLORS[entry.status]}`}
@@ -193,13 +185,13 @@ export default function ContentPanel({ refreshTrigger }: { refreshTrigger?: numb
                 </button>
               </div>
               <div className="flex gap-1 flex-shrink-0">
-                <button onClick={() => startEdit(entry)} className="text-gray-600 hover:text-gray-300 transition-colors text-xs p-1">✏️</button>
-                <button onClick={() => remove(entry.id)} className="text-gray-600 hover:text-red-400 transition-colors text-xs p-1">🗑️</button>
+                <button onClick={() => startEdit(entry)} className="text-gray-300 hover:text-gray-600 transition-colors text-xs p-1">✏️</button>
+                <button onClick={() => remove(entry.id)} className="text-gray-300 hover:text-red-500 transition-colors text-xs p-1">🗑️</button>
               </div>
             </div>
-            <p className="text-sm font-semibold text-white mb-1">{entry.angle}</p>
-            {entry.hook && <p className="text-xs text-gray-400 italic mb-1">&ldquo;{entry.hook}&rdquo;</p>}
-            {entry.notes && <p className="text-xs text-gray-600">{entry.notes}</p>}
+            <p className="text-sm font-semibold text-gray-900 mb-1">{entry.angle}</p>
+            {entry.hook && <p className="text-xs text-gray-500 italic mb-1">&ldquo;{entry.hook}&rdquo;</p>}
+            {entry.notes && <p className="text-xs text-gray-400">{entry.notes}</p>}
           </div>
         ))}
       </div>
