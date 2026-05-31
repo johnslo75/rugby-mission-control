@@ -1,140 +1,294 @@
-import { Suspense } from "react";
 import fs from "fs";
 import path from "path";
-import SiteNav from "./components/SiteNav";
+import Link from "next/link";
+import TopBar from "./components/TopBar";
+import SiteHeader from "./components/SiteHeader";
+import BreakingTicker from "./components/BreakingTicker";
+import CategoryBadge from "./components/CategoryBadge";
 import SiteFooter from "./components/SiteFooter";
-import { HeroCard, FeaturedCard, ListCard } from "./components/StoryCard";
+import { getAllStories, readTime, daysUntil, formatDate, formatDateShort } from "./components/utils";
 import type { Story } from "../api/stories/route";
 
-function daysUntil(target: Date): number {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 86400000));
+interface HotTake { id: string; text: string; source: string; }
+
+function getHotTake(): HotTake | null {
+  try {
+    const takes = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "hottakes.json"), "utf-8"));
+    return takes.find((t: HotTake & { active: boolean }) => t.active) ?? takes[0] ?? null;
+  } catch { return null; }
 }
 
-function getStories(): Story[] {
-  try {
-    const file = path.join(process.cwd(), "data", "stories.json");
-    const all: Story[] = JSON.parse(fs.readFileSync(file, "utf-8"));
-    return all.filter((s) => s.published).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  } catch {
-    return [];
-  }
+const FIFA = new Date("2026-06-11");
+const RWC  = new Date("2027-10-01");
+
+// ── Image placeholder ──────────────────────────────────────────────
+
+function ImgPlaceholder({ story, className = "", style = {} }: { story: Story; className?: string; style?: React.CSSProperties }) {
+  return (
+    <div className={className} style={{ background: (story as Story & { imageBg?: string }).imageBg || "#1a2a1a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", ...style }}>
+      {(story as Story & { imageEmoji?: string }).imageEmoji || "🏉"}
+    </div>
+  );
 }
+
+// ── Hero card ──────────────────────────────────────────────────────
+
+function HeroCard({ story }: { story: Story }) {
+  const s = story as Story & { viralScore?: number; matchInfo?: string; imageEmoji?: string; imageBg?: string };
+  return (
+    <Link href={`/site/article/${story.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+      <div className="card">
+        <div className="hero-img" style={{ minHeight: 280, background: s.imageBg || "#0a2a14" }}>
+          <div className="hero-ghost-number">01</div>
+          {s.imageBg && (
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "5rem", opacity: 0.15 }}>
+              {s.imageEmoji}
+            </div>
+          )}
+          <div className="hero-cat-badge"><CategoryBadge category={story.category} /></div>
+          {s.viralScore && (
+            <div className="hero-viral-badge">🔥 {s.viralScore}/10</div>
+          )}
+          {s.matchInfo && (
+            <div className="hero-overlay">
+              <span className="match-info">{s.matchInfo}</span>
+            </div>
+          )}
+        </div>
+        <div style={{ padding: "20px 20px 24px" }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <CategoryBadge category={story.category} link />
+          </div>
+          <h1 className="font-archivo" style={{ fontWeight: 900, fontSize: "clamp(1.2rem, 3vw, 1.6rem)", lineHeight: 1.25, color: "var(--ink)", marginBottom: 12 }}>
+            {story.title}
+          </h1>
+          <p className="font-dm-sans" style={{ fontSize: "0.95rem", color: "var(--mid)", lineHeight: 1.6, marginBottom: 16 }}>
+            {story.excerpt}
+          </p>
+          <div className="meta" style={{ display: "flex", gap: 12 }}>
+            <span>{story.author}</span>
+            <span>·</span>
+            <span>{formatDate(story.date)}</span>
+            <span>·</span>
+            <span>{readTime(story.body)} min read</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// ── Featured grid card ─────────────────────────────────────────────
+
+function FeaturedCard({ story, num }: { story: Story; num: number }) {
+  const s = story as Story & { imageEmoji?: string; imageBg?: string };
+  return (
+    <Link href={`/site/article/${story.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+      <div className="card" style={{ height: "100%" }}>
+        <div style={{ height: 160, background: s.imageBg || "#1a2a1a", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontSize: "0.65rem", fontFamily: "var(--font-archivo)", fontWeight: 900, color: "rgba(255,255,255,0.06)", fontSize: "6rem", lineHeight: 1 }}>0{num}</span>
+          <div style={{ position: "absolute", top: 10, left: 10 }}>
+            <CategoryBadge category={story.category} />
+          </div>
+        </div>
+        <div style={{ padding: "14px 16px 18px" }}>
+          <h2 className="font-archivo" style={{ fontWeight: 800, fontSize: "0.95rem", lineHeight: 1.35, color: "var(--ink)", marginBottom: 8 }}>
+            {story.title}
+          </h2>
+          <p className="font-dm-sans" style={{ fontSize: "0.82rem", color: "var(--mid)", lineHeight: 1.5, marginBottom: 12 }}>
+            {story.excerpt}
+          </p>
+          <div className="meta">{formatDateShort(story.date)} · {readTime(story.body)} min</div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// ── Story row ──────────────────────────────────────────────────────
+
+function StoryRow({ story }: { story: Story }) {
+  const s = story as Story & { imageEmoji?: string; imageBg?: string };
+  return (
+    <a href={`/site/article/${story.slug}`} className="story-row" style={{ textDecoration: "none" }}>
+      <div className="story-thumb" style={{ background: s.imageBg || "#1a2a1a" }}>
+        {s.imageEmoji || "🏉"}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ marginBottom: 6 }}><CategoryBadge category={story.category} /></div>
+        <h3 className="font-archivo" style={{ fontWeight: 700, fontSize: "0.9rem", lineHeight: 1.35, color: "var(--ink)", marginBottom: 4 }}>
+          {story.title}
+        </h3>
+        <p className="font-dm-sans" style={{ fontSize: "0.8rem", color: "var(--mid)", lineHeight: 1.4, marginBottom: 6 }}>
+          {story.excerpt}
+        </p>
+        <div className="meta">{story.author} · {formatDateShort(story.date)} · {readTime(story.body)} min read</div>
+      </div>
+    </a>
+  );
+}
+
+// ── Countdown card ─────────────────────────────────────────────────
+
+function CountdownCard() {
+  const fifaDays = daysUntil(FIFA);
+  const rwcDays  = daysUntil(RWC);
+  return (
+    <div className="countdown-card" style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #1e1e1e" }}>
+        <div className="countdown-label">Days to FIFA WC 2026</div>
+        <div className="countdown-number">{fifaDays}</div>
+        <div className="font-archivo-narrow" style={{ fontSize: "0.72rem", color: "#666", marginTop: 2 }}>
+          11 June 2026 · USA / Canada / Mexico
+        </div>
+      </div>
+      <div>
+        <div className="countdown-label">Days to Rugby WC 2027</div>
+        <div className="countdown-number">{rwcDays}</div>
+        <div className="font-archivo-narrow" style={{ fontSize: "0.72rem", color: "#666", marginTop: 2 }}>
+          1 October 2027 · Australia
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Also Today sidebar ─────────────────────────────────────────────
+
+function AlsoToday({ stories }: { stories: Story[] }) {
+  return (
+    <div style={{ background: "var(--card)", borderRadius: "var(--radius)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
+      <div style={{ background: "var(--ink-2)", padding: "8px 14px" }}>
+        <span className="font-archivo" style={{ fontWeight: 900, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "#fff" }}>
+          Also Today
+        </span>
+      </div>
+      <div style={{ padding: "4px 0" }}>
+        {stories.map((story, i) => (
+          <a key={story.id} href={`/site/article/${story.slug}`} style={{ display: "flex", gap: 12, padding: "10px 14px", textDecoration: "none", borderBottom: i < stories.length - 1 ? "1px solid var(--rule)" : "none" }}>
+            <span className="font-archivo" style={{ fontWeight: 900, fontSize: "1.1rem", color: "var(--green-bright)", minWidth: 24, flexShrink: 0 }}>
+              0{i + 2}
+            </span>
+            <div>
+              <div style={{ marginBottom: 4 }}><CategoryBadge category={story.category} /></div>
+              <p className="font-archivo" style={{ fontWeight: 700, fontSize: "0.82rem", lineHeight: 1.3, color: "var(--ink)" }}>
+                {story.title}
+              </p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Page ───────────────────────────────────────────────────────────
 
 export default function HomePage() {
-  const stories = getStories();
-  const hero = stories.find((s) => s.featured) || stories[0];
-  const featured = stories.filter((s) => s.id !== hero?.id).slice(0, 3);
-  const latest = stories.filter((s) => s.id !== hero?.id && !featured.find((f) => f.id === s.id)).slice(0, 10);
-  const rwcDays = daysUntil(new Date("2027-10-01"));
+  const stories = getAllStories();
+  const hero      = stories.find((s) => (s as Story & { featured?: boolean }).featured) || stories[0];
+  const rest      = stories.filter((s) => s.id !== hero?.id);
+  const featured  = rest.slice(0, 3);
+  const alsoToday = rest.slice(0, 4);
+  const latest    = rest.slice(0, 5);
+  const hotTake   = getHotTake();
+
+  const categories = ["ireland", "shithousery", "hot-takes", "tactical", "underdog", "world-cup"];
 
   return (
     <>
-      <SiteNav />
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <TopBar />
+      <SiteHeader />
+      <BreakingTicker stories={stories.slice(0, 5).map((s) => ({ title: s.title, slug: s.slug }))} />
 
-        {/* Hero */}
-        {hero && (
-          <section className="mb-12">
-            <HeroCard story={hero} />
+      <div style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 20px 0" }}>
+
+        {/* ── Hero + right column ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, marginBottom: 40, alignItems: "start" }}>
+          <div>{hero && <HeroCard story={hero} />}</div>
+          <div>
+            <CountdownCard />
+            <AlsoToday stories={alsoToday} />
+          </div>
+        </div>
+
+        {/* ── Featured grid ── */}
+        {featured.length > 0 && (
+          <section style={{ marginBottom: 48 }}>
+            <div className="section-header">
+              <span className="section-header-label">Featured</span>
+              <div className="section-header-rule" />
+              <a href="/site/latest" className="section-header-link">See all →</a>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+              {featured.map((s, i) => <FeaturedCard key={s.id} story={s} num={i + 2} />)}
+            </div>
           </section>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2">
-
-            {/* Featured grid */}
-            {featured.length > 0 && (
-              <section className="mb-12">
-                <div className="flex items-center gap-3 mb-6">
-                  <h2 className="font-headline text-xl font-bold text-gray-900">Featured</h2>
-                  <div className="flex-1 h-px bg-gray-200" />
-                </div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {featured.map((story) => (
-                    <FeaturedCard key={story.id} story={story} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Latest */}
-            {latest.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <h2 className="font-headline text-xl font-bold text-gray-900">Latest</h2>
-                  <div className="flex-1 h-px bg-gray-200" />
-                </div>
-                <div>
-                  {latest.map((story) => (
-                    <ListCard key={story.id} story={story} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {stories.length === 0 && (
-              <div className="text-center py-20">
-                <p className="text-5xl mb-4">🏉</p>
-                <h2 className="font-headline text-2xl font-bold text-gray-900 mb-2">Coming Soon</h2>
-                <p className="text-gray-500">Stories are on their way. Check back shortly.</p>
-              </div>
-            )}
-          </div>
+        {/* ── Latest + sidebar ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 290px", gap: 40, alignItems: "start" }}>
+          {/* Stories */}
+          <section>
+            <div className="section-header">
+              <span className="section-header-label">Latest Stories</span>
+              <div className="section-header-rule" />
+              <a href="/site/latest" className="section-header-link">All stories →</a>
+            </div>
+            {latest.map((s) => <StoryRow key={s.id} story={s} />)}
+          </section>
 
           {/* Sidebar */}
-          <aside className="space-y-6">
-            {/* RWC Countdown */}
-            <div className="bg-gray-900 text-white rounded-2xl p-6 text-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#00C853] mb-2">Countdown</p>
-              <p className="font-headline text-5xl font-bold text-white mb-1">{rwcDays}</p>
-              <p className="text-sm text-gray-400">days to</p>
-              <p className="font-headline text-lg font-bold mt-1">Rugby World Cup 2027</p>
-              <p className="text-xs text-gray-500 mt-1">Australia · 1 October 2027</p>
-            </div>
+          <aside>
+            {/* Hot Take */}
+            {hotTake && (
+              <div className="widget" style={{ marginBottom: 20 }}>
+                <div className="widget-header red">🔥 Hot Take</div>
+                <div className="widget-body">
+                  <p className="hot-take-text">&ldquo;{hotTake.text}&rdquo;</p>
+                  <p className="hot-take-source">— {hotTake.source}</p>
+                </div>
+              </div>
+            )}
 
             {/* About */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-              <h3 className="font-headline font-bold text-lg text-gray-900 mb-3">About</h3>
-              <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                Rugby Shithousery is an Irish rugby content channel covering the cynical, controversial, and
-                brilliantly unsporting side of the game. The stuff the commentary team won&apos;t say.
-              </p>
-              <div className="flex gap-3">
-                <a href="https://tiktok.com/@rugbyshithousery" target="_blank" rel="noopener noreferrer"
-                  className="text-xs bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors">
-                  🎵 TikTok
-                </a>
-                <a href="https://instagram.com/rugbyshithousery" target="_blank" rel="noopener noreferrer"
-                  className="text-xs bg-pink-600 text-white px-3 py-2 rounded-lg hover:bg-pink-700 transition-colors">
-                  📸 Instagram
-                </a>
+            <div className="widget" style={{ marginBottom: 20 }}>
+              <div className="widget-header dark">About</div>
+              <div className="widget-body">
+                <p className="font-dm-sans" style={{ fontSize: "0.85rem", color: "var(--mid)", lineHeight: 1.6, marginBottom: 14 }}>
+                  Ireland&apos;s home of rugby opinion. Cynical play, ref management, professional fouls — the side of rugby nobody else covers honestly.
+                </p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <a href="https://www.instagram.com/rugbyshithousery/" target="_blank" rel="noopener noreferrer"
+                    style={{ flex: 1, background: "var(--ink)", color: "#fff", textAlign: "center", padding: "8px 0", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 700, textDecoration: "none", fontFamily: "var(--font-archivo)" }}>
+                    📸 Instagram
+                  </a>
+                  <a href="https://www.tiktok.com/@rugbyshithousery" target="_blank" rel="noopener noreferrer"
+                    style={{ flex: 1, background: "var(--green)", color: "#fff", textAlign: "center", padding: "8px 0", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 700, textDecoration: "none", fontFamily: "var(--font-archivo)" }}>
+                    🎵 TikTok
+                  </a>
+                </div>
               </div>
             </div>
 
-            {/* Categories */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-              <h3 className="font-headline font-bold text-lg text-gray-900 mb-4">Categories</h3>
-              <div className="space-y-2">
-                {["Ireland", "World Cup", "Shithousery", "Hot Takes", "Tactical", "Underdog"].map((cat) => {
-                  const count = stories.filter((s) => s.category === cat).length;
-                  return (
-                    <a
-                      key={cat}
-                      href={`/site/category/${cat.toLowerCase().replace(" ", "-")}`}
-                      className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 hover:text-[#00C853] transition-colors group"
-                    >
-                      <span className="text-sm font-medium text-gray-700 group-hover:text-[#00C853]">{cat}</span>
-                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{count}</span>
+            {/* Browse topics */}
+            <div className="widget">
+              <div className="widget-header green">Browse Topics</div>
+              <div className="widget-body">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {categories.map((cat) => (
+                    <a key={cat} href={`/site/category/${cat}`}
+                      style={{ background: "var(--bg)", border: "1px solid var(--rule)", borderRadius: "var(--radius)", padding: "4px 12px", fontSize: "0.78rem", fontWeight: 700, fontFamily: "var(--font-archivo)", color: "var(--ink-3)", textDecoration: "none", textTransform: "capitalize" }}>
+                      {cat.replace("-", " ")}
                     </a>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             </div>
           </aside>
         </div>
-      </main>
+      </div>
+
       <SiteFooter />
     </>
   );
