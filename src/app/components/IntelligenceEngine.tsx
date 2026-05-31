@@ -45,12 +45,45 @@ function IdeaCard({
   onPublish: (idea: ContentIdea, story: ProcessedStory) => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const ideaKey = `${storyIdx}-${ideaIdx}`;
 
   async function copy(text: string, label: string) {
     await copyToClipboard(text);
     setCopied(label);
     setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function generateVoiceover() {
+    setGenerating(true);
+    setAudioError(null);
+    setAudioSrc(null);
+    try {
+      // Strip stage directions like [0-3s] from the script for clean audio
+      const cleanScript = idea.script.replace(/\[.*?\]/g, "").replace(/\s+/g, " ").trim();
+      const res = await fetch("/api/voiceover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: cleanScript }),
+      });
+      const data = await res.json() as { audio?: string; error?: string };
+      if (!res.ok || data.error) throw new Error(data.error || "Failed to generate voiceover");
+      setAudioSrc(data.audio!);
+    } catch (e) {
+      setAudioError(e instanceof Error ? e.message : "Failed to generate voiceover");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function downloadAudio() {
+    if (!audioSrc) return;
+    const a = document.createElement("a");
+    a.href = audioSrc;
+    a.download = `${idea.angle_title.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}.mp3`;
+    a.click();
   }
 
   return (
@@ -73,6 +106,20 @@ function IdeaCard({
           {idea.script}
         </div>
       </div>
+
+      {/* Voiceover player */}
+      {audioSrc && (
+        <div className="bg-white border border-purple-200 rounded-lg p-3 space-y-2">
+          <p className="text-xs text-purple-600 font-semibold uppercase tracking-wide">🎙️ Voiceover Ready</p>
+          <audio controls src={audioSrc} className="w-full h-8" />
+          <button onClick={downloadAudio} className="btn-ghost text-xs py-1 px-3 border-purple-200 text-purple-600 hover:bg-purple-50 w-full">
+            ⬇️ Download MP3
+          </button>
+        </div>
+      )}
+      {audioError && (
+        <div className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg p-2">⚠️ {audioError}</div>
+      )}
 
       {/* Thumbnail */}
       <div className="flex items-center gap-2">
@@ -99,6 +146,13 @@ function IdeaCard({
       <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-200">
         <button onClick={() => onSave(ideaKey, idea, scanId)} className="btn-primary text-xs py-1.5 px-3">
           💾 Save to Content Log
+        </button>
+        <button
+          onClick={generateVoiceover}
+          disabled={generating}
+          className="btn-ghost text-xs py-1.5 px-3 border-purple-200 text-purple-600 hover:bg-purple-50 disabled:opacity-50"
+        >
+          {generating ? "⏳ Generating…" : audioSrc ? "🎙️ Regenerate" : "🎙️ Generate Voiceover"}
         </button>
         <button onClick={() => copy(idea.script, "script")} className="btn-ghost text-xs py-1.5 px-3">
           {copied === "script" ? "✓ Copied!" : "📋 Copy Script"}
