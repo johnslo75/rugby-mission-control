@@ -86,7 +86,7 @@ function FeaturedCard({ story, num }: { story: Story; num: number }) {
     <Link href={`/site/article/${story.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
       <div className="card" style={{ height: "100%" }}>
         <div style={{ height: 160, background: s.imageBg || "#1a2a1a", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ fontSize: "0.65rem", fontFamily: "var(--font-archivo)", fontWeight: 900, color: "rgba(255,255,255,0.06)", fontSize: "6rem", lineHeight: 1 }}>0{num}</span>
+          <span style={{ fontFamily: "var(--font-archivo)", fontWeight: 900, color: "rgba(255,255,255,0.06)", fontSize: "6rem", lineHeight: 1 }}>0{num}</span>
           <div style={{ position: "absolute", top: 10, left: 10 }}>
             <CategoryBadge category={story.category} />
           </div>

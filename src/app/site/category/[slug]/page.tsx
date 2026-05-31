@@ -20,13 +20,16 @@ export async function generateStaticParams() {
   return Object.keys(SLUG_TO_LABEL).map((slug) => ({ slug }));
 }
 
-export default function CategoryPage({ params }: { params: { slug: string } }) {
-  const label = SLUG_TO_LABEL[params.slug] || params.slug;
+export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const label = SLUG_TO_LABEL[slug] || slug;
+  const labelLower = label.toLowerCase();
   const allStories = getAllStories() as StoryExt[];
-  const stories = allStories.filter(
-    (s) => s.category.toLowerCase().replace(/ /g, "-") === params.slug ||
-           s.category.toLowerCase() === label.toLowerCase()
-  );
+  const stories = allStories.filter((s) => {
+    if (!s.category || typeof s.category !== "string") return false;
+    const cat = s.category.toLowerCase();
+    return cat.replace(/ /g, "-") === slug || cat === labelLower;
+  });
 
   return (
     <>

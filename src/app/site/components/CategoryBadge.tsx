@@ -22,7 +22,8 @@ const CAT_LABELS: Record<string, string> = {
   "world cup": "World Cup",
 };
 
-export default function CategoryBadge({ category, link = false }: { category: string; link?: boolean }) {
+export default function CategoryBadge({ category, link = false }: { category?: string; link?: boolean }) {
+  if (!category) return null;
   const key = category.toLowerCase();
   const cls = CAT_CLASS[key] || "cat-default";
   const label = CAT_LABELS[key] || category;
