@@ -25,10 +25,12 @@ const LEAGUES: { id: number; name: string }[] = [
   { id: 289234, name: "International Test Match" },
 ];
 
-async function fetchESPN(leagueId: number, leagueName: string): Promise<Score[]> {
+async function fetchESPN(leagueId: number, leagueName: string, dateFrom: Date, dateTo: Date): Promise<Score[]> {
   try {
+    const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, "");
+    const dateRange = `${fmt(dateFrom)}-${fmt(dateTo)}`;
     const res = await fetch(
-      `https://site.api.espn.com/apis/site/v2/sports/rugby/${leagueId}/scoreboard`,
+      `https://site.api.espn.com/apis/site/v2/sports/rugby/${leagueId}/scoreboard?dates=${dateRange}`,
       { signal: AbortSignal.timeout(8000) }
     );
     if (!res.ok) return [];
@@ -117,9 +119,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(manual);
   }
 
-  // Fetch live from ESPN in parallel
+  // Fetch live from ESPN in parallel, passing the explicit date window
   const espnResults = await Promise.all(
-    LEAGUES.map((l) => fetchESPN(l.id, l.name))
+    LEAGUES.map((l) => fetchESPN(l.id, l.name, weekStart, weekEnd))
   );
   const espnFlat = espnResults.flat().filter((s) => {
     const d = new Date(s.matchDate);
