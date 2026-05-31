@@ -34,47 +34,63 @@ function ImgPlaceholder({ story, className = "", style = {} }: { story: Story; c
 // ── Hero card ──────────────────────────────────────────────────────
 
 function HeroCard({ story }: { story: Story }) {
-  const s = story as Story & { viralScore?: number; matchInfo?: string; imageEmoji?: string; imageBg?: string };
+  const s = story as Story & { viralScore?: number; matchInfo?: string; imageEmoji?: string; imageBg?: string; videoUrl?: string };
+  const hasVideo = !s.imageUrl && s.videoUrl;
   return (
-    <Link href={`/site/article/${story.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-      <div className="card">
-        <div className="hero-img" style={{ minHeight: 280, background: s.imageBg || "#0a2a14" }}>
-          <div className="hero-ghost-number">01</div>
-          {s.imageBg && (
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "5rem", opacity: 0.15 }}>
-              {s.imageEmoji}
-            </div>
-          )}
-          <div className="hero-cat-badge"><CategoryBadge category={story.category} /></div>
-          {s.viralScore && (
-            <div className="hero-viral-badge">🔥 {s.viralScore}/10</div>
-          )}
-          {s.matchInfo && (
-            <div className="hero-overlay">
-              <span className="match-info">{s.matchInfo}</span>
-            </div>
-          )}
-        </div>
-        <div style={{ padding: "20px 20px 24px" }}>
-          <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <CategoryBadge category={story.category} link />
+    <div className="card">
+      <div className="hero-img" style={{ minHeight: hasVideo ? 0 : 280, background: hasVideo ? "transparent" : (s.imageBg || "#0a2a14"), padding: hasVideo ? 0 : undefined }}>
+        {hasVideo ? (
+          <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden" }}>
+            <iframe
+              src={s.videoUrl}
+              title="Rugby Shithousery"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+            />
+            <div className="hero-cat-badge"><CategoryBadge category={story.category} /></div>
+            {s.viralScore && <div className="hero-viral-badge">🔥 {s.viralScore}/10</div>}
+            {s.matchInfo && (
+              <div className="hero-overlay"><span className="match-info">{s.matchInfo}</span></div>
+            )}
           </div>
-          <h1 className="font-archivo" style={{ fontWeight: 900, fontSize: "clamp(1.2rem, 3vw, 1.6rem)", lineHeight: 1.25, color: "var(--ink)", marginBottom: 12 }}>
-            {story.title}
-          </h1>
-          <p className="font-dm-sans" style={{ fontSize: "0.95rem", color: "var(--mid)", lineHeight: 1.6, marginBottom: 16 }}>
-            {story.excerpt}
-          </p>
-          <div className="meta" style={{ display: "flex", gap: 12 }}>
-            <span>{story.author}</span>
-            <span>·</span>
-            <span>{formatDate(story.date)}</span>
-            <span>·</span>
-            <span>{readTime(story.body)} min read</span>
-          </div>
-        </div>
+        ) : (
+          <>
+            <div className="hero-ghost-number">01</div>
+            {s.imageBg && (
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "5rem", opacity: 0.15 }}>
+                {s.imageEmoji}
+              </div>
+            )}
+            <div className="hero-cat-badge"><CategoryBadge category={story.category} /></div>
+            {s.viralScore && <div className="hero-viral-badge">🔥 {s.viralScore}/10</div>}
+            {s.matchInfo && (
+              <div className="hero-overlay"><span className="match-info">{s.matchInfo}</span></div>
+            )}
+          </>
+        )}
       </div>
-    </Link>
+      <Link href={`/site/article/${story.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block", padding: "20px 20px 24px" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <CategoryBadge category={story.category} link />
+        </div>
+        <h1 className="font-archivo" style={{ fontWeight: 900, fontSize: "clamp(1.2rem, 3vw, 1.6rem)", lineHeight: 1.25, color: "var(--ink)", marginBottom: 12 }}>
+          {story.title}
+        </h1>
+        <p className="font-dm-sans" style={{ fontSize: "0.95rem", color: "var(--mid)", lineHeight: 1.6, marginBottom: 16 }}>
+          {story.excerpt}
+        </p>
+        <div className="meta" style={{ display: "flex", gap: 12 }}>
+          <span>{story.author}</span>
+          <span>·</span>
+          <span>{formatDate(story.date)}</span>
+          <span>·</span>
+          <span>{readTime(story.body)} min read</span>
+        </div>
+      </Link>
+    </div>
   );
 }
 
