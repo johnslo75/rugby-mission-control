@@ -167,8 +167,8 @@ async function generateWithClaude(stories: (RawStory & { mentionCount: number })
 
   const client = new Anthropic({ apiKey });
 
-  const userMessage = `Here are the top rugby stories right now. Generate shithousery content ideas for the top 3:\n\n${stories
-    .slice(0, 5)
+  const userMessage = `Here are the top rugby stories right now. Generate shithousery content ideas for the top 3 only:\n\n${stories
+    .slice(0, 3)
     .map(
       (s, i) =>
         `${i + 1}. [${s.source}] ${s.title}\n   Published: ${s.pubDate}\n   ${s.snippet}${s.upvotes ? `\n   Reddit upvotes: ${s.upvotes}` : ""}`
@@ -177,7 +177,7 @@ async function generateWithClaude(stories: (RawStory & { mentionCount: number })
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-5",
-    max_tokens: 4000,
+    max_tokens: 6000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userMessage }],
   });
@@ -185,7 +185,23 @@ async function generateWithClaude(stories: (RawStory & { mentionCount: number })
   const text = response.content[0].type === "text" ? response.content[0].text : "";
   // Strip markdown code fences if present
   const cleaned = text.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
-  return JSON.parse(cleaned) as { stories: Omit<ProcessedStory, "link" | "pubDate" | "mentionCount">[] };
+
+  // Attempt parse; if truncated, try to salvage complete story objects
+  try {
+    return JSON.parse(cleaned) as { stories: Omit<ProcessedStory, "link" | "pubDate" | "mentionCount">[] };
+  } catch {
+    // Find the last complete story object by truncating to the last "}," or "}]"
+    const lastComplete = cleaned.lastIndexOf('},');
+    const lastEnd = cleaned.lastIndexOf('}]');
+    const cutAt = Math.max(lastComplete, lastEnd);
+    if (cutAt > 0) {
+      try {
+        const salvaged = cleaned.slice(0, lastComplete > lastEnd ? lastComplete + 1 : cutAt + 2) + (lastComplete > lastEnd ? ']}}' : '}');
+        return JSON.parse(salvaged) as { stories: Omit<ProcessedStory, "link" | "pubDate" | "mentionCount">[] };
+      } catch { /* fall through */ }
+    }
+    throw new Error(`Unterminated JSON from Claude. Raw (last 200 chars): ${cleaned.slice(-200)}`);
+  }
 }
 
 // ─── Main pipeline ────────────────────────────────────────────────────────────
