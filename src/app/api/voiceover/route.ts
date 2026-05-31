@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const VOICE_ID = "GFyWqnwcF2mv6dWlo3u1";
+const VOICE_ID = "08jLzFlm3AgapWo8C96P";
 const ELEVENLABS_URL = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`;
 
 export async function POST(req: NextRequest) {
