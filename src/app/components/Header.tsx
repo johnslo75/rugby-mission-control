@@ -49,8 +49,9 @@ export default function Header({ postsThisWeek }: Props) {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-gray-900">
-              🏉 Rugby Shithousery
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+              <img src="/logo.jpg" alt="Rugby Shithousery" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid #00C853" }} />
+              Rugby Shithousery
               <span className="text-[#00C853]"> — Mission Control</span>
             </h1>
           </div>
