@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import ChecklistPanel from "./components/ChecklistPanel";
 import ContentPanel from "./components/ContentPanel";
 import PerformancePanel from "./components/PerformancePanel";
+import IntelligenceEngine from "./components/IntelligenceEngine";
 
 interface PerfEntry {
   id: string;
@@ -33,6 +34,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#0a0a0a]">
       <Header postsThisWeek={getPostsThisWeek(perfEntries)} />
       <main className="max-w-7xl mx-auto px-4 py-6">
+        <IntelligenceEngine />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <ChecklistPanel />
           <ContentPanel />
