@@ -7,6 +7,7 @@ import ContentPanel from "../components/ContentPanel";
 import PerformancePanel from "../components/PerformancePanel";
 import IntelligenceEngine from "../components/IntelligenceEngine";
 import SitePostsPanel from "../components/SitePostsPanel";
+import BestIdeasPanel from "../components/BestIdeasPanel";
 
 interface PerfEntry {
   id: string;
@@ -28,7 +29,7 @@ function getPostsThisWeek(entries: PerfEntry[]): number {
   return entries.filter((e) => new Date(e.date) >= startOfWeek).length;
 }
 
-type Tab = "dashboard" | "site";
+type Tab = "dashboard" | "best" | "site";
 
 export default function HubDashboard() {
   const [perfEntries, setPerfEntries] = useState<PerfEntry[]>([]);
@@ -43,7 +44,7 @@ export default function HubDashboard() {
       <div className="border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1">
-            {([["dashboard", "📊 Dashboard"], ["site", "🌐 Site Posts"]] as const).map(([tab, label]) => (
+            {([["dashboard", "📊 Dashboard"], ["best", "⭐ Best Ideas"], ["site", "🌐 Site Posts"]] as const).map(([tab, label]) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -71,6 +72,7 @@ export default function HubDashboard() {
             </div>
           </>
         )}
+        {activeTab === "best" && <BestIdeasPanel />}
         {activeTab === "site" && <SitePostsPanel />}
       </main>
     </div>
