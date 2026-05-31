@@ -29,15 +29,16 @@ function getPostsThisWeek(entries: PerfEntry[]): number {
 
 export default function Dashboard() {
   const [perfEntries, setPerfEntries] = useState<PerfEntry[]>([]);
+  const [contentRefresh, setContentRefresh] = useState(0);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <Header postsThisWeek={getPostsThisWeek(perfEntries)} />
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <IntelligenceEngine />
+        <IntelligenceEngine onSaved={() => setContentRefresh((n) => n + 1)} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <ChecklistPanel />
-          <ContentPanel />
+          <ContentPanel refreshTrigger={contentRefresh} />
           <PerformancePanel onDataChange={setPerfEntries} />
         </div>
       </main>

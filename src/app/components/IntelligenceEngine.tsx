@@ -306,7 +306,7 @@ function ScanHistory({ scans }: { scans: ScanResult[] }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function IntelligenceEngine() {
+export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }) {
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [latestScan, setLatestScan] = useState<ScanResult | null>(null);
@@ -363,6 +363,7 @@ export default function IntelligenceEngine() {
       body: JSON.stringify({ scanId, action: "save", ideaKey }),
     });
     alert("✅ Saved to Content Log!");
+    onSaved?.();
   }
 
   function handlePost(ideaKey: string, idea: ContentIdea, scanId: string) {

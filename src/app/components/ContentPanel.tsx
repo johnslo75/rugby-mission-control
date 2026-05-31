@@ -29,7 +29,7 @@ const EMPTY: Omit<ContentEntry, "id"> = {
   notes: "",
 };
 
-export default function ContentPanel() {
+export default function ContentPanel({ refreshTrigger }: { refreshTrigger?: number }) {
   const [entries, setEntries] = useState<ContentEntry[]>([]);
   const [form, setForm] = useState({ ...EMPTY });
   const [showForm, setShowForm] = useState(false);
@@ -40,7 +40,7 @@ export default function ContentPanel() {
 
   useEffect(() => {
     fetch("/api/content").then((r) => r.json()).then(setEntries);
-  }, []);
+  }, [refreshTrigger]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
