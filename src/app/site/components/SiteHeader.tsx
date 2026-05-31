@@ -11,6 +11,7 @@ const NAV = [
   { label: "Hot Takes 🔥", href: "/site/category/hot-takes", hot: true },
   { label: "Tactical", href: "/site/category/tactical" },
   { label: "Underdog", href: "/site/category/underdog" },
+  { label: "Results 🏆", href: "/site/category/results" },
   { label: "RWC 2027", href: "/site/category/world-cup", pill: true },
 ];
 
