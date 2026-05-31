@@ -307,9 +307,10 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
     setError(null);
     try {
       const res = await fetch("/api/scan", { method: "POST" });
-      if (!res.ok) {
-        const err = await res.json() as { error: string };
-        throw new Error(err.error || "Scan failed");
+      const contentType = res.headers.get("content-type") || "";
+      if (!res.ok || !contentType.includes("application/json")) {
+        const text = await res.text();
+        throw new Error(`Scan failed (${res.status}): ${text.slice(0, 200)}`);
       }
       const result = await res.json() as ScanResult;
       setLatestScan(result);
