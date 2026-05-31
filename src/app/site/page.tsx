@@ -5,7 +5,8 @@ import SiteHeader from "./components/SiteHeader";
 import BreakingTicker from "./components/BreakingTicker";
 import CategoryBadge from "./components/CategoryBadge";
 import SiteFooter from "./components/SiteFooter";
-import { getAllStories, readTime, daysUntil, formatDate, formatDateShort } from "./components/utils";
+import { getAllStories, getWeekendScores, readTime, daysUntil, formatDate, formatDateShort } from "./components/utils";
+import type { Score } from "./components/utils";
 import type { Story } from "../api/stories/route";
 
 interface HotTake { id: string; text: string; source: string; }
@@ -200,10 +201,60 @@ function AlsoToday({ stories }: { stories: Story[] }) {
   );
 }
 
+// ── Scores section ────────────────────────────────────────────────
+
+function ScoreRow({ score }: { score: Score }) {
+  const homeWon = (score.homeScore ?? 0) > (score.awayScore ?? 0);
+  const awayWon = (score.awayScore ?? 0) > (score.homeScore ?? 0);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "1px solid var(--rule)" }}>
+      <span className="font-archivo" style={{ flex: 1, fontWeight: homeWon ? 800 : 400, fontSize: "0.82rem", color: homeWon ? "var(--ink)" : "var(--mid)", textAlign: "right" }}>
+        {score.homeTeam}
+      </span>
+      <span className="font-archivo" style={{ fontWeight: 900, fontSize: "0.95rem", color: "var(--ink)", minWidth: 56, textAlign: "center", letterSpacing: "0.04em" }}>
+        {score.homeScore} – {score.awayScore}
+      </span>
+      <span className="font-archivo" style={{ flex: 1, fontWeight: awayWon ? 800 : 400, fontSize: "0.82rem", color: awayWon ? "var(--ink)" : "var(--mid)" }}>
+        {score.awayTeam}
+      </span>
+    </div>
+  );
+}
+
+function ScoresSection({ scores }: { scores: Score[] }) {
+  if (scores.length === 0) return null;
+
+  // Group by competition
+  const grouped = new Map<string, Score[]>();
+  for (const s of scores) {
+    if (!grouped.has(s.competition)) grouped.set(s.competition, []);
+    grouped.get(s.competition)!.push(s);
+  }
+
+  return (
+    <section style={{ marginBottom: 48 }}>
+      <div className="section-header">
+        <span className="section-header-label">🏆 Weekend Results</span>
+        <div className="section-header-rule" />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+        {Array.from(grouped.entries()).map(([comp, results]) => (
+          <div key={comp} className="card" style={{ padding: "14px 16px" }}>
+            <p className="font-archivo" style={{ fontWeight: 900, fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--green)", marginBottom: 10 }}>
+              {comp}
+            </p>
+            {results.map((r) => <ScoreRow key={r.id} score={r} />)}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ── Page ───────────────────────────────────────────────────────────
 
 export default async function HomePage() {
-  const stories = await getAllStories();
+  const [stories, scores] = await Promise.all([getAllStories(), getWeekendScores()]);
   const hero      = stories.find((s) => (s as Story & { featured?: boolean }).featured) || stories[0];
   const rest      = stories.filter((s) => s.id !== hero?.id);
   const featured  = rest.slice(0, 3);
@@ -243,6 +294,9 @@ export default async function HomePage() {
             </div>
           </section>
         )}
+
+        {/* ── Weekend scores ── */}
+        <ScoresSection scores={scores} />
 
         {/* ── Latest + sidebar ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 290px", gap: 40, alignItems: "start" }}>

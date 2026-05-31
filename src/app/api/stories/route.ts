@@ -71,9 +71,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as Omit<Story, "id" | "slug">;
+  const body = (await req.json()) as Omit<Story, "id"> & { slug?: string };
   const id = Date.now().toString();
-  const slug = slugify(body.title);
+  const slug = body.slug ? body.slug : slugify(body.title);
   await pool.query(`
     INSERT INTO stories (id, slug, title, excerpt, body, category, author, date,
       image_url, video_url, image_emoji, image_bg, featured, viral_score, match_info, published, tags)

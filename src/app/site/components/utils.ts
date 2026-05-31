@@ -1,5 +1,38 @@
 import pool from "@/lib/db";
 import type { Story } from "../../api/stories/route";
+import type { Score } from "../../api/scores/route";
+
+export type { Score };
+
+export async function getWeekendScores(): Promise<Score[]> {
+  try {
+    const now = new Date();
+    const from = new Date(now);
+    from.setDate(now.getDate() - 3);
+    const to = new Date(now);
+    to.setDate(now.getDate() + 7);
+    const { rows } = await pool.query(
+      `SELECT * FROM scores
+       WHERE match_date >= $1 AND match_date <= $2
+         AND home_score IS NOT NULL
+       ORDER BY competition, match_date`,
+      [from.toISOString().slice(0, 10), to.toISOString().slice(0, 10)]
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      competition: r.competition,
+      homeTeam: r.home_team,
+      awayTeam: r.away_team,
+      homeScore: r.home_score,
+      awayScore: r.away_score,
+      matchDate: r.match_date,
+      status: r.status,
+      source: r.source,
+    }));
+  } catch {
+    return [];
+  }
+}
 
 export async function getAllStories(): Promise<Story[]> {
   try {

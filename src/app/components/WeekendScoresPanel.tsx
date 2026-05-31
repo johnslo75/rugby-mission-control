@@ -172,12 +172,35 @@ function generateInstagramCaption(scores: Score[]): string {
   return caption.trim();
 }
 
+function generateArticleBody(scores: Score[]): string {
+  const finished = scores.filter((s) => s.homeScore !== null && s.awayScore !== null);
+  const grouped = new Map<string, Score[]>();
+  for (const s of finished) {
+    if (!grouped.has(s.competition)) grouped.set(s.competition, []);
+    grouped.get(s.competition)!.push(s);
+  }
+
+  let html = "";
+  for (const [comp, results] of grouped) {
+    html += `<h2>${comp}</h2>\n<ul>\n`;
+    for (const r of results) {
+      const homeWon = r.homeScore! > r.awayScore!;
+      const awayWon = r.awayScore! > r.homeScore!;
+      html += `  <li><strong>${homeWon ? r.homeTeam : r.homeTeam}</strong> ${homeWon ? `<strong>${r.homeScore} – ${r.awayScore}</strong> ${r.awayTeam}` : awayWon ? `${r.homeScore} – <strong>${r.awayScore}</strong> <strong>${r.awayTeam}</strong>` : `${r.homeScore} – ${r.awayScore} ${r.awayTeam}`}</li>\n`;
+    }
+    html += `</ul>\n`;
+  }
+  return html;
+}
+
 export default function WeekendScoresPanel() {
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [caption, setCaption] = useState("");
   const [copied, setCopied] = useState(false);
+  const [pushing, setPushing] = useState(false);
+  const [pushResult, setPushResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   async function load(refresh = false) {
     if (refresh) setRefreshing(true); else setLoading(true);
@@ -200,6 +223,51 @@ export default function WeekendScoresPanel() {
 
   function handleAdded(score: Score) {
     setScores((prev) => [score, ...prev]);
+  }
+
+  async function pushToSite() {
+    const finished = scores.filter((s) => s.homeScore !== null && s.awayScore !== null);
+    if (finished.length === 0) return;
+    setPushing(true);
+    setPushResult(null);
+    try {
+      const dateStr = new Date().toLocaleDateString("en-IE", { day: "numeric", month: "long", year: "numeric" });
+      const title = `Weekend Rugby Results — ${dateStr}`;
+      const body = generateArticleBody(finished);
+      const comps = [...new Set(finished.map((s) => s.competition))];
+      const excerpt = `All the scores and results from ${comps.slice(0, 3).join(", ")}${comps.length > 3 ? " and more" : ""} this weekend.`;
+      const slug = `rugby-results-${new Date().toISOString().slice(0, 10)}`;
+
+      const res = await fetch("/api/stories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          slug,
+          excerpt,
+          body,
+          category: "results",
+          author: "Mission Control",
+          date: new Date().toISOString().slice(0, 10),
+          imageEmoji: "🏆",
+          imageBg: "#1a1a2e",
+          featured: false,
+          viralScore: 7,
+          published: true,
+          tags: ["results", "scores", "weekend"],
+        }),
+      });
+      if (res.ok) {
+        setPushResult({ ok: true, message: `✅ Published! "${title}" is now live on the site.` });
+      } else {
+        const err = await res.json() as { error?: string };
+        setPushResult({ ok: false, message: `❌ Failed: ${err.error || res.statusText}` });
+      }
+    } catch (e) {
+      setPushResult({ ok: false, message: `❌ Error: ${e instanceof Error ? e.message : "Unknown error"}` });
+    } finally {
+      setPushing(false);
+    }
   }
 
   async function copyCaption() {
@@ -274,18 +342,32 @@ export default function WeekendScoresPanel() {
 
       <AddScoreForm onAdded={handleAdded} />
 
-      {/* Instagram caption */}
+      {/* Instagram caption + Push to Site */}
       {finishedCount > 0 && (
         <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">📸 Instagram Caption</p>
-            <button
-              onClick={copyCaption}
-              className="btn-ghost text-xs py-1 px-3 border-pink-200 text-pink-600 hover:bg-pink-50"
-            >
-              {copied ? "✓ Copied!" : "Copy Caption"}
-            </button>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={copyCaption}
+                className="btn-ghost text-xs py-1 px-3 border-pink-200 text-pink-600 hover:bg-pink-50"
+              >
+                {copied ? "✓ Copied!" : "Copy Caption"}
+              </button>
+              <button
+                onClick={pushToSite}
+                disabled={pushing}
+                className="btn-primary text-xs py-1 px-3 disabled:opacity-50"
+              >
+                {pushing ? "⏳ Publishing…" : "🌐 Push to Site"}
+              </button>
+            </div>
           </div>
+          {pushResult && (
+            <p className={`text-xs rounded-lg px-3 py-2 ${pushResult.ok ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-600 border border-red-200"}`}>
+              {pushResult.message}
+            </p>
+          )}
           {caption && (
             <pre className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-3 whitespace-pre-wrap font-sans leading-relaxed">
               {caption}
