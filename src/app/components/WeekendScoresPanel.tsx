@@ -225,10 +225,11 @@ export default function WeekendScoresPanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
-          <h2 className="text-base font-bold text-gray-900">🏆 Weekend Scores</h2>
+          <h2 className="text-base font-bold text-gray-900">🏆 Rugby Scores</h2>
           <p className="text-xs text-gray-500 mt-0.5">
-            {finishedCount} result{finishedCount !== 1 ? "s" : ""}
-            {scheduledCount > 0 ? ` · ${scheduledCount} upcoming` : ""}
+            {finishedCount > 0 ? `${finishedCount} result${finishedCount !== 1 ? "s" : ""}` : ""}
+            {finishedCount > 0 && scheduledCount > 0 ? " · " : ""}
+            {scheduledCount > 0 ? `${scheduledCount} upcoming` : ""}
           </p>
         </div>
         <button

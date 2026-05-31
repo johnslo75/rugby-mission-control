@@ -79,20 +79,20 @@ export async function GET(req: NextRequest) {
   const refresh = searchParams.get("refresh") === "1";
   const dateParam = searchParams.get("date"); // YYYY-MM-DD, defaults to this weekend
 
-  // Determine weekend window (Friday–Monday)
+  // Rolling 10-day window: 3 days back + 7 days forward
+  // This catches recent results AND upcoming fixtures
   const now = new Date();
-  const day = now.getDay(); // 0=Sun,1=Mon,...,6=Sat
-  const friday = new Date(now);
-  friday.setDate(now.getDate() - ((day + 2) % 7)); // previous Friday
-  friday.setHours(0, 0, 0, 0);
-  const monday = new Date(friday);
-  monday.setDate(friday.getDate() + 4); // following Monday night
-  monday.setHours(23, 59, 59, 999);
+  const windowStart = new Date(now);
+  windowStart.setDate(now.getDate() - 3);
+  windowStart.setHours(0, 0, 0, 0);
+  const windowEnd = new Date(now);
+  windowEnd.setDate(now.getDate() + 7);
+  windowEnd.setHours(23, 59, 59, 999);
 
-  const weekStart = dateParam ? new Date(dateParam + "T00:00:00Z") : friday;
+  const weekStart = dateParam ? new Date(dateParam + "T00:00:00Z") : windowStart;
   const weekEnd = dateParam
-    ? new Date(new Date(dateParam).getTime() + 4 * 86400000)
-    : monday;
+    ? new Date(new Date(dateParam).getTime() + 10 * 86400000)
+    : windowEnd;
 
   // Fetch manual DB scores for this window
   const { rows: dbScores } = await pool.query(
