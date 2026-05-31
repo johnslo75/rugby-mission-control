@@ -1,0 +1,109 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+function daysUntil(target: Date): number {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const diff = target.getTime() - now.getTime();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
+const FIFA_DATE = new Date("2026-06-11");
+const RWC_DATE = new Date("2027-10-01");
+
+interface Props {
+  postsThisWeek: number;
+}
+
+export default function Header({ postsThisWeek }: Props) {
+  const [followers, setFollowers] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((d) => {
+        setFollowers(d.followers ?? 0);
+        setDraft(String(d.followers ?? 0));
+      });
+  }, []);
+
+  async function saveFollowers() {
+    setSaving(true);
+    const val = parseInt(draft, 10) || 0;
+    await fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ followers: val }),
+    });
+    setFollowers(val);
+    setSaving(false);
+    setEditing(false);
+  }
+
+  return (
+    <header className="sticky top-0 z-50 bg-[#0d0d0d] border-b border-[#1a1a1a] px-4 py-3">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              🏉 Rugby Shithousery
+              <span className="text-[#00C853]"> — Mission Control</span>
+            </h1>
+          </div>
+          <div className="flex flex-wrap gap-3 text-sm">
+            <Stat label="FIFA WC 2026" value={`${daysUntil(FIFA_DATE)}d`} />
+            <Stat label="RWC 2027" value={`${daysUntil(RWC_DATE)}d`} />
+            <div className="flex items-center gap-2 bg-[#141414] border border-[#222] rounded-lg px-3 py-1.5">
+              <span className="text-gray-400 text-xs uppercase tracking-wide">Followers</span>
+              {editing ? (
+                <div className="flex items-center gap-1.5">
+                  <input
+                    className="w-24 bg-[#1a1a1a] border border-[#00C853] rounded px-2 py-0.5 text-white text-sm focus:outline-none"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && saveFollowers()}
+                    autoFocus
+                  />
+                  <button
+                    onClick={saveFollowers}
+                    disabled={saving}
+                    className="text-[#00C853] hover:text-white transition-colors text-xs font-semibold"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="text-gray-500 hover:text-white transition-colors text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => { setDraft(String(followers)); setEditing(true); }}
+                  className="text-white font-bold hover:text-[#00C853] transition-colors"
+                >
+                  {followers.toLocaleString()}
+                </button>
+              )}
+            </div>
+            <Stat label="Posts this week" value={String(postsThisWeek)} highlight />
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <div className="flex items-center gap-2 bg-[#141414] border border-[#222] rounded-lg px-3 py-1.5">
+      <span className="text-gray-400 text-xs uppercase tracking-wide">{label}</span>
+      <span className={`font-bold ${highlight ? "text-[#00C853]" : "text-white"}`}>{value}</span>
+    </div>
+  );
+}
