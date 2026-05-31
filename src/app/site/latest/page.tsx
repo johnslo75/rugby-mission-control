@@ -7,8 +7,8 @@ import type { Story } from "../../api/stories/route";
 
 type StoryExt = Story & { imageEmoji?: string; imageBg?: string };
 
-export default function LatestPage() {
-  const stories = getAllStories() as StoryExt[];
+export default async function LatestPage() {
+  const stories = (await getAllStories()) as StoryExt[];
 
   return (
     <>

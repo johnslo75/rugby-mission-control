@@ -1,13 +1,30 @@
-import fs from "fs";
-import path from "path";
+import pool from "@/lib/db";
 import type { Story } from "../../api/stories/route";
 
-export function getAllStories(): Story[] {
+export async function getAllStories(): Promise<Story[]> {
   try {
-    const file = path.join(process.cwd(), "data", "stories.json");
-    return (JSON.parse(fs.readFileSync(file, "utf-8")) as Story[])
-      .filter((s) => s.published)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const { rows } = await pool.query(
+      "SELECT * FROM stories WHERE published=true ORDER BY date DESC"
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      slug: r.slug,
+      title: r.title,
+      excerpt: r.excerpt,
+      body: r.body,
+      category: r.category,
+      author: r.author,
+      date: r.date,
+      imageUrl: r.image_url || "",
+      videoUrl: r.video_url || undefined,
+      imageEmoji: r.image_emoji || "🏉",
+      imageBg: r.image_bg || "#1a2a1a",
+      featured: r.featured,
+      viralScore: r.viral_score,
+      matchInfo: r.match_info || undefined,
+      published: r.published,
+      tags: r.tags || [],
+    }));
   } catch {
     return [];
   }

@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const FILE = path.join(process.cwd(), "data", "stories.json");
+import pool from "@/lib/db";
 
 export interface Story {
   id: string;
@@ -15,23 +12,39 @@ export interface Story {
   date: string;
   imageUrl: string;
   videoUrl?: string;
+  imageEmoji?: string;
+  imageBg?: string;
   featured: boolean;
+  viralScore?: number;
+  matchInfo?: string;
   published: boolean;
+  tags?: string[];
 }
 
-function read(): Story[] {
-  return JSON.parse(fs.readFileSync(FILE, "utf-8"));
-}
-function write(data: Story[]) {
-  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
+function rowToStory(r: Record<string, unknown>): Story {
+  return {
+    id: r.id as string,
+    slug: r.slug as string,
+    title: r.title as string,
+    excerpt: r.excerpt as string,
+    body: r.body as string,
+    category: r.category as string,
+    author: r.author as string,
+    date: r.date as string,
+    imageUrl: (r.image_url as string) || "",
+    videoUrl: (r.video_url as string) || undefined,
+    imageEmoji: (r.image_emoji as string) || "🏉",
+    imageBg: (r.image_bg as string) || "#1a2a1a",
+    featured: r.featured as boolean,
+    viralScore: r.viral_score as number | undefined,
+    matchInfo: (r.match_info as string) || undefined,
+    published: r.published as boolean,
+    tags: (r.tags as string[]) || [],
+  };
 }
 
 function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .slice(0, 60);
+  return text.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 60);
 }
 
 export async function GET(req: NextRequest) {
@@ -39,42 +52,62 @@ export async function GET(req: NextRequest) {
   const category = searchParams.get("category");
   const slug = searchParams.get("slug");
   const all = searchParams.get("all");
-  const allStories = read();
-  const stories = all ? allStories : allStories.filter((s) => s.published);
 
-  if (slug) return NextResponse.json(allStories.find((s) => s.slug === slug) ?? null);
-  if (category) return NextResponse.json(stories.filter((s) => s.category.toLowerCase() === category.toLowerCase()));
-  return NextResponse.json(stories);
+  if (slug) {
+    const { rows } = await pool.query("SELECT * FROM stories WHERE slug=$1", [slug]);
+    return NextResponse.json(rows[0] ? rowToStory(rows[0]) : null);
+  }
+  if (category) {
+    const { rows } = await pool.query(
+      "SELECT * FROM stories WHERE published=true AND LOWER(category)=LOWER($1) ORDER BY date DESC",
+      [category]
+    );
+    return NextResponse.json(rows.map(rowToStory));
+  }
+  const { rows } = all
+    ? await pool.query("SELECT * FROM stories ORDER BY date DESC")
+    : await pool.query("SELECT * FROM stories WHERE published=true ORDER BY date DESC");
+  return NextResponse.json(rows.map(rowToStory));
 }
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Omit<Story, "id" | "slug">;
-  const stories = read();
-  const story: Story = {
-    ...body,
-    id: Date.now().toString(),
-    slug: slugify(body.title),
-    published: true,
-  };
-  stories.unshift(story);
-  write(stories);
-  return NextResponse.json(story);
+  const id = Date.now().toString();
+  const slug = slugify(body.title);
+  await pool.query(`
+    INSERT INTO stories (id, slug, title, excerpt, body, category, author, date,
+      image_url, video_url, image_emoji, image_bg, featured, viral_score, match_info, published, tags)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+  `, [
+    id, slug, body.title, body.excerpt, body.body, body.category, body.author, body.date,
+    body.imageUrl || '', body.videoUrl || '', body.imageEmoji || '🏉', body.imageBg || '#1a2a1a',
+    body.featured || false, body.viralScore || null, body.matchInfo || null,
+    true, body.tags || []
+  ]);
+  const { rows } = await pool.query("SELECT * FROM stories WHERE id=$1", [id]);
+  return NextResponse.json(rowToStory(rows[0]));
 }
 
 export async function PUT(req: NextRequest) {
   const body = (await req.json()) as Story;
-  const stories = read();
-  const idx = stories.findIndex((s) => s.id === body.id);
-  if (idx < 0) return NextResponse.json({ error: "not found" }, { status: 404 });
-  stories[idx] = body;
-  write(stories);
+  await pool.query(`
+    UPDATE stories SET
+      title=$2, excerpt=$3, body=$4, category=$5, author=$6, date=$7,
+      image_url=$8, video_url=$9, image_emoji=$10, image_bg=$11,
+      featured=$12, viral_score=$13, match_info=$14, published=$15, tags=$16
+    WHERE id=$1
+  `, [
+    body.id, body.title, body.excerpt, body.body, body.category, body.author, body.date,
+    body.imageUrl || '', body.videoUrl || '', body.imageEmoji || '🏉', body.imageBg || '#1a2a1a',
+    body.featured || false, body.viralScore || null, body.matchInfo || null,
+    body.published || false, body.tags || []
+  ]);
   return NextResponse.json(body);
 }
 
 export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  const stories = read().filter((s) => s.id !== id);
-  write(stories);
+  await pool.query("DELETE FROM stories WHERE id=$1", [id]);
   return NextResponse.json({ ok: true });
 }

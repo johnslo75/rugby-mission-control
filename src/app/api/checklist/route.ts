@@ -1,36 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const FILE = path.join(process.cwd(), "data", "checklist.json");
-
-function read() {
-  return JSON.parse(fs.readFileSync(FILE, "utf-8")) as ChecklistDay[];
-}
-function write(data: ChecklistDay[]) {
-  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
-}
-
-interface ChecklistDay {
-  date: string;
-  checked: Record<string, boolean>;
-  savedAt: string;
-}
+import pool from "@/lib/db";
 
 export async function GET() {
-  const data = read();
   const today = new Date().toISOString().slice(0, 10);
-  const existing = data.find((d) => d.date === today);
-  return NextResponse.json(existing ?? { date: today, checked: {}, savedAt: "" });
+  const { rows } = await pool.query("SELECT * FROM checklist WHERE date=$1", [today]);
+  if (rows[0]) {
+    return NextResponse.json({ date: rows[0].date, checked: rows[0].checked, savedAt: rows[0].saved_at });
+  }
+  return NextResponse.json({ date: today, checked: {}, savedAt: "" });
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as { date: string; checked: Record<string, boolean> };
-  const data = read();
-  const idx = data.findIndex((d) => d.date === body.date);
-  const entry: ChecklistDay = { ...body, savedAt: new Date().toISOString() };
-  if (idx >= 0) data[idx] = entry;
-  else data.push(entry);
-  write(data);
-  return NextResponse.json(entry);
+  const body = await req.json() as { date: string; checked: Record<string, boolean> };
+  await pool.query(`
+    INSERT INTO checklist (date, checked, saved_at) VALUES ($1,$2,NOW())
+    ON CONFLICT (date) DO UPDATE SET checked=EXCLUDED.checked, saved_at=NOW()
+  `, [body.date, JSON.stringify(body.checked)]);
+  const { rows } = await pool.query("SELECT * FROM checklist WHERE date=$1", [body.date]);
+  return NextResponse.json({ date: rows[0].date, checked: rows[0].checked, savedAt: rows[0].saved_at });
 }

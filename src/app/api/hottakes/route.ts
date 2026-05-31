@@ -1,19 +1,10 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const FILE = path.join(process.cwd(), "data", "hottakes.json");
-
-interface HotTake {
-  id: string;
-  text: string;
-  source: string;
-  active: boolean;
-  date: string;
-}
+import pool from "@/lib/db";
 
 export async function GET() {
-  const takes: HotTake[] = JSON.parse(fs.readFileSync(FILE, "utf-8"));
-  const active = takes.find((t) => t.active) ?? takes[0] ?? null;
-  return NextResponse.json(active);
+  const { rows } = await pool.query(
+    "SELECT * FROM hottakes ORDER BY CASE WHEN active THEN 0 ELSE 1 END, date DESC LIMIT 1"
+  );
+  if (!rows[0]) return NextResponse.json(null);
+  return NextResponse.json({ id: rows[0].id, text: rows[0].text, source: rows[0].source, active: rows[0].active, date: rows[0].date });
 }

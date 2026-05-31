@@ -1,6 +1,5 @@
-import fs from "fs";
-import path from "path";
 import Link from "next/link";
+import pool from "@/lib/db";
 import TopBar from "./components/TopBar";
 import SiteHeader from "./components/SiteHeader";
 import BreakingTicker from "./components/BreakingTicker";
@@ -11,10 +10,13 @@ import type { Story } from "../api/stories/route";
 
 interface HotTake { id: string; text: string; source: string; }
 
-function getHotTake(): HotTake | null {
+async function getHotTake(): Promise<HotTake | null> {
   try {
-    const takes = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "hottakes.json"), "utf-8"));
-    return takes.find((t: HotTake & { active: boolean }) => t.active) ?? takes[0] ?? null;
+    const { rows } = await pool.query(
+      "SELECT * FROM hottakes ORDER BY CASE WHEN active THEN 0 ELSE 1 END, date DESC LIMIT 1"
+    );
+    if (!rows[0]) return null;
+    return { id: rows[0].id, text: rows[0].text, source: rows[0].source };
   } catch { return null; }
 }
 
@@ -200,14 +202,14 @@ function AlsoToday({ stories }: { stories: Story[] }) {
 
 // ── Page ───────────────────────────────────────────────────────────
 
-export default function HomePage() {
-  const stories = getAllStories();
+export default async function HomePage() {
+  const stories = await getAllStories();
   const hero      = stories.find((s) => (s as Story & { featured?: boolean }).featured) || stories[0];
   const rest      = stories.filter((s) => s.id !== hero?.id);
   const featured  = rest.slice(0, 3);
   const alsoToday = rest.slice(0, 4);
   const latest    = rest.slice(0, 5);
-  const hotTake   = getHotTake();
+  const hotTake   = await getHotTake();
 
   const categories = ["ireland", "shithousery", "hot-takes", "tactical", "underdog", "world-cup"];
 

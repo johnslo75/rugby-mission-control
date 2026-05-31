@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import Anthropic from "@anthropic-ai/sdk";
-
-const SCANS_FILE = path.join(process.cwd(), "data", "scans.json");
+import pool from "@/lib/db";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -233,10 +230,17 @@ export async function runScanPipeline(): Promise<ScanResult> {
     postedIdeas: [],
   };
 
-  const scans: ScanResult[] = JSON.parse(fs.readFileSync(SCANS_FILE, "utf-8"));
-  scans.unshift(scanResult);
-  // Keep last 30 scans
-  fs.writeFileSync(SCANS_FILE, JSON.stringify(scans.slice(0, 30), null, 2));
+  await pool.query(`
+    INSERT INTO scans (id, date, stories, ideas, raw_items)
+    VALUES ($1,$2,$3,$4,$5)
+    ON CONFLICT (id) DO NOTHING
+  `, [
+    scanResult.id,
+    scanResult.timestamp.slice(0, 10),
+    JSON.stringify(scanResult.stories),
+    JSON.stringify([]),
+    JSON.stringify([]),
+  ]);
 
   return scanResult;
 }

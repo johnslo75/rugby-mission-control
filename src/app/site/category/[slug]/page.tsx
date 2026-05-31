@@ -24,7 +24,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const label = SLUG_TO_LABEL[slug] || slug;
   const labelLower = label.toLowerCase();
-  const allStories = getAllStories() as StoryExt[];
+  const allStories = (await getAllStories()) as StoryExt[];
   const stories = allStories.filter((s) => {
     if (!s.category || typeof s.category !== "string") return false;
     const cat = s.category.toLowerCase();

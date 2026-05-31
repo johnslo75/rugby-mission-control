@@ -9,13 +9,15 @@ import type { Story } from "../../../api/stories/route";
 
 type StoryExt = Story & { imageEmoji?: string; imageBg?: string; viralScore?: number; matchInfo?: string };
 
-export function generateStaticParams() {
-  return getAllStories().map((s) => ({ slug: s.slug }));
+export async function generateStaticParams() {
+  const stories = await getAllStories();
+  return stories.map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const story = getAllStories().find((s) => s.slug === slug) as StoryExt | undefined;
+  const stories = await getAllStories();
+  const story = stories.find((s) => s.slug === slug) as StoryExt | undefined;
   if (!story) return {};
   return {
     title: story.title,
@@ -41,7 +43,7 @@ function RelatedCard({ story }: { story: StoryExt }) {
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const stories = getAllStories() as StoryExt[];
+  const stories = (await getAllStories()) as StoryExt[];
   const story = stories.find((s) => s.slug === slug);
   if (!story) notFound();
 

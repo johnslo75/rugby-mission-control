@@ -1,53 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const FILE = path.join(process.cwd(), "data", "content.json");
-
-interface ContentEntry {
-  id: string;
-  date: string;
-  match: string;
-  angle: string;
-  hook: string;
-  status: "idea" | "in production" | "posted";
-  notes: string;
-}
-
-function read(): ContentEntry[] {
-  return JSON.parse(fs.readFileSync(FILE, "utf-8"));
-}
-function write(data: ContentEntry[]) {
-  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
-}
+import pool from "@/lib/db";
 
 export async function GET() {
-  return NextResponse.json(read());
+  const { rows } = await pool.query("SELECT * FROM content_ideas ORDER BY created_at DESC");
+  return NextResponse.json(rows.map((r) => ({
+    id: r.id, title: r.title, hook: r.hook, script: r.script,
+    caption: r.caption, tags: r.tags, category: r.category,
+    status: r.status, source: r.source, viralScore: r.viral_score,
+    date: r.created_at,
+    // legacy fields for hub UI compatibility
+    match: r.title, angle: r.hook, notes: r.caption,
+  })));
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as Omit<ContentEntry, "id">;
-  const data = read();
-  const entry: ContentEntry = { ...body, id: Date.now().toString() };
-  data.push(entry);
-  write(data);
-  return NextResponse.json(entry);
+  const body = await req.json();
+  const id = Date.now().toString();
+  await pool.query(`
+    INSERT INTO content_ideas (id, title, hook, script, caption, tags, category, status, source, viral_score)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+  `, [
+    id,
+    body.title || body.match || "",
+    body.hook || body.angle || "",
+    body.script || "",
+    body.caption || body.notes || "",
+    body.tags || "",
+    body.category || "",
+    body.status || "idea",
+    body.source || "",
+    body.viralScore || null,
+  ]);
+  const { rows } = await pool.query("SELECT * FROM content_ideas WHERE id=$1", [id]);
+  return NextResponse.json(rows[0]);
 }
 
 export async function PUT(req: NextRequest) {
-  const body = (await req.json()) as ContentEntry;
-  const data = read();
-  const idx = data.findIndex((e) => e.id === body.id);
-  if (idx < 0) return NextResponse.json({ error: "not found" }, { status: 404 });
-  data[idx] = body;
-  write(data);
+  const body = await req.json();
+  await pool.query(`
+    UPDATE content_ideas SET
+      title=$2, hook=$3, script=$4, caption=$5, tags=$6,
+      category=$7, status=$8, source=$9, viral_score=$10, updated_at=NOW()
+    WHERE id=$1
+  `, [
+    body.id,
+    body.title || body.match || "",
+    body.hook || body.angle || "",
+    body.script || "",
+    body.caption || body.notes || "",
+    body.tags || "",
+    body.category || "",
+    body.status || "idea",
+    body.source || "",
+    body.viralScore || null,
+  ]);
   return NextResponse.json(body);
 }
 
 export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  const data = read().filter((e) => e.id !== id);
-  write(data);
+  await pool.query("DELETE FROM content_ideas WHERE id=$1", [id]);
   return NextResponse.json({ ok: true });
 }

@@ -1,26 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const FILE = path.join(process.cwd(), "data", "settings.json");
-
-interface Settings {
-  followers: number;
-}
-
-function read(): Settings {
-  return JSON.parse(fs.readFileSync(FILE, "utf-8"));
-}
-function write(data: Settings) {
-  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
-}
+import pool from "@/lib/db";
 
 export async function GET() {
-  return NextResponse.json(read());
+  const { rows } = await pool.query("SELECT key, value FROM settings");
+  const settings: Record<string, unknown> = {};
+  for (const r of rows) {
+    settings[r.key] = isNaN(Number(r.value)) ? r.value : Number(r.value);
+  }
+  return NextResponse.json(settings);
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as Settings;
-  write(body);
+  const body = await req.json();
+  for (const [key, value] of Object.entries(body)) {
+    await pool.query(`
+      INSERT INTO settings (key, value) VALUES ($1,$2)
+      ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value
+    `, [key, String(value)]);
+  }
   return NextResponse.json(body);
 }
