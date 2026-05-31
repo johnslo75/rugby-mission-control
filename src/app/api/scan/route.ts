@@ -11,6 +11,7 @@ export interface RawStory {
   pubDate: string;
   snippet: string;
   upvotes?: number;
+  isIrish?: boolean;
 }
 
 export interface ContentIdea {
@@ -32,6 +33,7 @@ export interface ProcessedStory {
   viral_score: number;
   content_ideas: ContentIdea[];
   mentionCount: number;
+  isIrish?: boolean;
 }
 
 export interface ScanResult {
@@ -46,22 +48,50 @@ export interface ScanResult {
 // ─── RSS helpers ──────────────────────────────────────────────────────────────
 
 const RSS_FEEDS = [
+  // Core rugby media
   { name: "RugbyPass", url: "https://www.rugbypass.com/feed/" },
-  { name: "World Rugby", url: "https://www.world.rugby/rss" },
-  { name: "RTE Sport Rugby", url: "https://www.rte.ie/sport/rugby/rss" },
   { name: "BBC Rugby", url: "https://feeds.bbci.co.uk/sport/rugby-union/rss.xml" },
   { name: "Guardian Rugby", url: "https://www.theguardian.com/sport/rugby-union/rss" },
+  { name: "RTE Sport Rugby", url: "https://www.rte.ie/sport/rugby/rss" },
+  // Wire & breaking news
+  { name: "Reuters Sport", url: "https://feeds.reuters.com/reuters/sportsNews" },
+  { name: "SkySports Rugby", url: "https://www.skysports.com/rss/12040" },
+  // Official bodies
+  { name: "EPCRugby", url: "https://www.epcrugby.com/news/rss" },
+  { name: "World Rugby News", url: "https://www.world.rugby/news/rss" },
+  // Irish specific
+  { name: "IRFU", url: "https://www.irishrugby.ie/rss" },
+  { name: "Leinster Rugby", url: "https://www.leinsterrugby.ie/feed/" },
+  { name: "Munster Rugby", url: "https://www.munsterrugby.ie/feed/" },
+  { name: "Ulster Rugby", url: "https://ulsterrugby.com/feed/" },
+  { name: "Connacht Rugby", url: "https://www.connachtrugby.ie/feed/" },
+  // Additional rugby media
+  { name: "The Rugby Paper", url: "https://www.therugbypaper.co.uk/feed/" },
+  { name: "Rugbydump", url: "https://www.rugbydump.com/feed" },
+  // Google News
   { name: "Google News Ireland Rugby", url: "https://news.google.com/rss/search?q=ireland+rugby&hl=en-IE&gl=IE&ceid=IE:en" },
   { name: "Google News RWC 2027", url: "https://news.google.com/rss/search?q=rugby+world+cup+2027&hl=en-IE&gl=IE&ceid=IE:en" },
 ];
 
+const IRISH_SOURCES = new Set(["IRFU", "Leinster Rugby", "Munster Rugby", "Ulster Rugby", "Connacht Rugby"]);
+
+const IRISH_KEYWORDS = [
+  "ireland", "irish", "irfu", "leinster", "munster", "ulster", "connacht",
+  "farrell", "schmidt", "carbery", "sexton", "lowe", "porter", "furlong",
+];
+
+function tagIrish(story: RawStory): RawStory {
+  const text = `${story.title} ${story.snippet} ${story.source}`.toLowerCase();
+  const isIrish = IRISH_SOURCES.has(story.source) || IRISH_KEYWORDS.some((kw) => text.includes(kw));
+  return { ...story, isIrish };
+}
+
 async function fetchRSS(feedUrl: string, sourceName: string): Promise<RawStory[]> {
   try {
-    // Use rss-parser dynamically to avoid issues with edge runtime
     const Parser = (await import("rss-parser")).default;
     const parser = new Parser({ timeout: 8000 });
     const feed = await parser.parseURL(feedUrl);
-    return (feed.items || []).slice(0, 5).map((item) => ({
+    return (feed.items || []).slice(0, 5).map((item) => tagIrish({
       title: item.title || "",
       link: item.link || "",
       source: sourceName,
@@ -80,7 +110,7 @@ async function fetchReddit(): Promise<RawStory[]> {
       { headers: { "User-Agent": "RugbyMissionControl/1.0" }, signal: AbortSignal.timeout(8000) }
     );
     const data = await res.json() as { data: { children: Array<{ data: { title: string; url: string; created_utc: number; selftext: string; ups: number } }> } };
-    return data.data.children.map((c) => ({
+    return data.data.children.map((c) => tagIrish({
       title: c.data.title,
       link: c.data.url,
       source: "Reddit r/rugbyunion",
@@ -95,23 +125,48 @@ async function fetchReddit(): Promise<RawStory[]> {
 
 // ─── Dedup & rank ─────────────────────────────────────────────────────────────
 
-function deduplicateAndRank(stories: RawStory[]): (RawStory & { mentionCount: number; score: number })[] {
-  const groups: Map<string, RawStory & { mentionCount: number; score: number }> = new Map();
+// Source tiers — higher tier = more credible signal when a story appears there
+const SOURCE_WEIGHT: Record<string, number> = {
+  "IRFU": 3,
+  "Leinster Rugby": 3,
+  "Munster Rugby": 3,
+  "Ulster Rugby": 3,
+  "Connacht Rugby": 3,
+  "EPCRugby": 3,
+  "World Rugby News": 3,
+  "Reuters Sport": 2.5,
+  "SkySports Rugby": 2,
+  "BBC Rugby": 2,
+  "RugbyPass": 2,
+  "Guardian Rugby": 2,
+  "RTE Sport Rugby": 2,
+  "The Rugby Paper": 1.5,
+  "Reddit r/rugbyunion": 1.5,
+  "Rugbydump": 1,
+};
+
+function deduplicateAndRank(stories: RawStory[]): (RawStory & { mentionCount: number; score: number; isIrish: boolean })[] {
+  const groups: Map<string, RawStory & { mentionCount: number; score: number; sourceWeight: number; isIrish: boolean }> = new Map();
 
   for (const story of stories) {
+    // Key on first 6 meaningful words — catches the same story from different sources
     const key = story.title
       .toLowerCase()
       .replace(/[^a-z0-9 ]/g, "")
       .split(" ")
+      .filter(Boolean)
       .slice(0, 6)
       .join(" ");
 
+    const weight = SOURCE_WEIGHT[story.source] ?? 1;
     const existing = groups.get(key);
     if (existing) {
       existing.mentionCount++;
+      existing.sourceWeight += weight; // accumulate source weights
       if ((story.upvotes ?? 0) > (existing.upvotes ?? 0)) existing.upvotes = story.upvotes;
+      if (story.isIrish) existing.isIrish = true; // any Irish signal flags the group
     } else {
-      groups.set(key, { ...story, mentionCount: 1, score: 0 });
+      groups.set(key, { ...story, mentionCount: 1, score: 0, sourceWeight: weight, isIrish: story.isIrish ?? false });
     }
   }
 
@@ -119,10 +174,12 @@ function deduplicateAndRank(stories: RawStory[]): (RawStory & { mentionCount: nu
   return Array.from(groups.values())
     .map((s) => {
       const ageHours = (now - new Date(s.pubDate).getTime()) / 3_600_000;
-      const recencyScore = Math.max(0, 10 - ageHours / 2.4); // 0-10 over 24h
-      const mentionScore = s.mentionCount * 3;
-      const upvoteScore = Math.min(5, ((s.upvotes ?? 0) / 200));
-      s.score = recencyScore + mentionScore + upvoteScore;
+      const recencyScore = Math.max(0, 10 - ageHours / 2.4); // 0–10 over 24h
+      const mentionScore = s.mentionCount * 2;                // reward cross-source coverage
+      const sourceScore = Math.min(8, s.sourceWeight);        // weighted source credibility
+      const upvoteScore = Math.min(5, (s.upvotes ?? 0) / 200);
+      const irishBoost = s.isIrish ? 6 : 0;                  // 🇮🇪 Irish stories float to top
+      s.score = recencyScore + mentionScore + sourceScore + upvoteScore + irishBoost;
       return s;
     })
     .sort((a, b) => b.score - a.score)
@@ -171,7 +228,7 @@ async function generateWithClaude(stories: (RawStory & { mentionCount: number })
     .slice(0, 3)
     .map(
       (s, i) =>
-        `${i + 1}. [${s.source}] ${s.title}\n   Published: ${s.pubDate}\n   ${s.snippet}${s.upvotes ? `\n   Reddit upvotes: ${s.upvotes}` : ""}`
+        `${i + 1}. ${s.isIrish ? "🇮🇪 [IRISH STORY] " : ""}[${s.source}] ${s.title}\n   Published: ${s.pubDate}\n   ${s.snippet}${s.upvotes ? `\n   Reddit upvotes: ${s.upvotes}` : ""}${s.mentionCount > 1 ? `\n   Mentioned by ${s.mentionCount} sources` : ""}`
     )
     .join("\n\n")}`;
 
@@ -233,6 +290,7 @@ export async function runScanPipeline(): Promise<ScanResult> {
       viral_score: cs.viral_score,
       content_ideas: cs.content_ideas,
       mentionCount: raw?.mentionCount || 1,
+      isIrish: raw?.isIrish || false,
     };
   });
 

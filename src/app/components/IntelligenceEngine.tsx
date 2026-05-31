@@ -196,6 +196,11 @@ function StoryCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
+              {story.isIrish && (
+                <span className="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-2 py-0.5 font-bold">
+                  🇮🇪 Irish
+                </span>
+              )}
               <span className="text-xs text-gray-400">{story.source}</span>
               <span className="text-xs text-gray-300">·</span>
               <span className="text-xs text-gray-400">{timeAgo(story.pubDate)}</span>
