@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
-export function proxy(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const host = req.headers.get("host") || "";
   const { pathname } = req.nextUrl;
 
-  // Skip API routes and static files
-  if (pathname.startsWith("/api") || pathname.startsWith("/_next") || pathname.includes(".")) {
+  // Skip static files
+  if (pathname.startsWith("/_next") || pathname.includes(".")) {
     return NextResponse.next();
   }
 
@@ -13,6 +14,30 @@ export function proxy(req: NextRequest) {
     host.startsWith("hub.") ||
     host.includes("hub.rugbyshithousery") ||
     pathname.startsWith("/hub");
+
+  // ── AUTH GUARD ────────────────────────────────────────────────
+  // Protect all hub routes except /hub/login and NextAuth API routes
+  if (isHub) {
+    const isLoginPage = pathname === "/hub/login" || pathname === "/login";
+    const isAuthApi = pathname.startsWith("/api/auth");
+
+    if (!isLoginPage && !isAuthApi) {
+      const session = await auth();
+      if (!session) {
+        const loginUrl = req.nextUrl.clone();
+        // On the hub subdomain the path is "/" but we need to send to /hub/login
+        loginUrl.pathname = "/hub/login";
+        loginUrl.searchParams.set("callbackUrl", pathname === "/" ? "/hub" : pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+    }
+  }
+  // ─────────────────────────────────────────────────────────────
+
+  // Skip API routes after auth check (don't rewrite them)
+  if (pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
 
   // Already routed correctly
   if (isHub && pathname.startsWith("/hub")) return NextResponse.next();

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Providers from "./providers";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function HubLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-screen bg-gray-50">{children}</div>;
+  return (
+    <Providers>
+      <div className="min-h-screen bg-gray-50">{children}</div>
+    </Providers>
+  );
 }

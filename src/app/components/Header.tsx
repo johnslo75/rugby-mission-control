@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 function daysUntil(target: Date): number {
   const now = new Date();
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function Header({ postsThisWeek }: Props) {
+  const { data: session } = useSession();
   const [followers, setFollowers] = useState(0);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -79,6 +81,20 @@ export default function Header({ postsThisWeek }: Props) {
               )}
             </div>
             <Stat label="Posts this week" value={String(postsThisWeek)} highlight />
+            {session?.user && (
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
+                <span className="text-gray-500 text-xs font-medium">{session.user.name}</span>
+                <span className="text-gray-300 text-xs">·</span>
+                <span className="text-xs text-gray-400 capitalize">{(session.user as { role?: string }).role}</span>
+                <button
+                  onClick={() => signOut({ callbackUrl: "/hub/login" })}
+                  className="text-xs text-gray-400 hover:text-red-500 transition-colors ml-1"
+                  title="Sign out"
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
