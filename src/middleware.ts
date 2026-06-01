@@ -36,6 +36,13 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Rewrite public site — rugbyshithousery.com/* → /site/*
+  if (!isHub && !pathname.startsWith("/site") && !pathname.startsWith("/api") && !pathname.startsWith("/_next")) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/site${pathname === "/" ? "" : pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
   return NextResponse.next();
 }
 
