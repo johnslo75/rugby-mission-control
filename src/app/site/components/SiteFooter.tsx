@@ -22,7 +22,7 @@ export default function SiteFooter() {
           {/* Brand */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <Image src="/rugbyradarlogo.png" alt="Rugby Radar" width={40} height={40} style={{ objectFit: "contain" }} />
+              <Image src="/rugbyradarlogo.png" alt="Rugby Radar" width={60} height={60} style={{ objectFit: "contain" }} />
               <div className="font-archivo" style={{ fontWeight: 900, fontSize: "1.1rem", letterSpacing: "-0.02em" }}>
                 <span style={{ color: "#ffffff" }}>RUGBY</span>{" "}
                 <span style={{ color: "#00a86b" }}>RADAR</span>

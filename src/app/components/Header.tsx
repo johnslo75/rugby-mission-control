@@ -52,7 +52,7 @@ export default function Header({ postsThisWeek }: Props) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-              <img src="/rugbyradarlogo.png" alt="Rugby Radar" style={{ width: 40, height: 40, objectFit: "contain" }} />
+              <img src="/rugbyradarlogo.png" alt="Rugby Radar" style={{ width: 52, height: 52, objectFit: "contain" }} />
               Rugby Radar
               <span style={{ color: "#00a86b" }}> — Mission Control</span>
             </h1>
