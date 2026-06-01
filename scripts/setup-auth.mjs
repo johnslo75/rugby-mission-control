@@ -63,7 +63,7 @@ async function run() {
     ON CONFLICT (email) DO UPDATE SET
       password_hash = EXCLUDED.password_hash,
       role = EXCLUDED.role
-  `, ["jared@rugbyshithousery.com", "Jared", jaredHash]);
+  `, ["jaredsloan09@icloud.com", "Jared", jaredHash]);
 
   console.log("✅ Jared (editor) upserted");
   console.log("\nDone. Both users can now log in.");
