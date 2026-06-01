@@ -29,7 +29,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
   if (!story) notFound();
 
   const related = stories.filter((s) => s.id !== story.id && s.category === story.category).slice(0, 3);
-  const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://rugbyshithousery.com"}/${story.slug}`;
+  const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://rugbyradar.co"}/${story.slug}`;
   const shareText = encodeURIComponent(story.title);
 
   return (
@@ -114,19 +114,19 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
           {/* Sidebar */}
           <aside className="space-y-6 lg:pt-10">
             <div className="bg-gray-900 text-white rounded-2xl p-6 text-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#00C853] mb-3">Follow Rugby Shithousery</p>
+              <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#00a86b" }}>Follow Rugby Radar</p>
               <div className="space-y-2">
-                <a href="https://tiktok.com/@rugbyshithousery" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg py-2.5 text-sm transition-colors">
-                  🎵 TikTok
-                </a>
-                <a href="https://instagram.com/rugbyshithousery" target="_blank" rel="noopener noreferrer"
+                <a href="https://instagram.com/rugbyradarco" target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg py-2.5 text-sm transition-colors">
                   📸 Instagram
                 </a>
-                <a href="https://x.com/rugbyshithousery" target="_blank" rel="noopener noreferrer"
+                <a href="https://x.com/rugbyradar" target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg py-2.5 text-sm transition-colors">
                   🐦 Twitter/X
+                </a>
+                <a href="https://tiktok.com/@rugbyradar" target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg py-2.5 text-sm transition-colors">
+                  🎵 TikTok
                 </a>
               </div>
             </div>

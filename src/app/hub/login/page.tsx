@@ -58,12 +58,12 @@ function LoginForm() {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <Image
             src="/logo.jpg"
-            alt="Rugby Shithousery"
+            alt="Rugby Radar"
             width={64}
             height={64}
-            style={{ borderRadius: "50%", border: "2px solid #00C853", marginBottom: 16 }}
+            style={{ borderRadius: "50%", border: "2px solid #00a86b", marginBottom: 16 }}
           />
-          <p style={{ color: "#00C853", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>
+          <p style={{ color: "#00a86b", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>
             Mission Control
           </p>
           <h1 style={{ color: "#f0f0f0", fontSize: 22, fontWeight: 800, margin: "6px 0 0" }}>
@@ -140,7 +140,7 @@ function LoginForm() {
             type="submit"
             disabled={loading}
             style={{
-              background: loading ? "#1a3a1a" : "#00C853",
+              background: loading ? "#0a1f35" : "#00a86b",
               color: loading ? "#4a7a4a" : "#000",
               border: "none",
               borderRadius: 8,
@@ -157,7 +157,7 @@ function LoginForm() {
         </form>
 
         <p style={{ textAlign: "center", color: "#444", fontSize: 12, marginTop: 24, marginBottom: 0 }}>
-          Rugby Shithousery Mission Control
+          Rugby Radar — Mission Control
         </p>
       </div>
     </div>

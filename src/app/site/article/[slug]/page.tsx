@@ -48,7 +48,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   if (!story) notFound();
 
   const related = stories.filter((s) => s.id !== story.id && s.category === story.category).slice(0, 3);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rugbyshithousery.com";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rugbyradar.co";
   const articleUrl = `${siteUrl}/article/${story.slug}`;
   const shareText = encodeURIComponent(story.title);
 
@@ -143,12 +143,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           <aside style={{ position: "sticky", top: 100 }}>
             <div style={{ background: "var(--ink)", color: "#fff", borderRadius: "var(--radius)", padding: 20, marginBottom: 20 }}>
               <p className="font-archivo" style={{ fontWeight: 900, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--green-bright)", marginBottom: 16 }}>
-                Follow Rugby Shithousery
+                Follow Rugby Radar
               </p>
               {[
-                { label: "🎵 TikTok", href: "https://www.tiktok.com/@rugbyshithousery", bg: "#fff" },
-                { label: "📸 Instagram", href: "https://www.instagram.com/rugbyshithousery/", bg: "#fff" },
-                { label: "🐦 Twitter / X", href: "https://x.com/rugbyshithousery", bg: "#fff" },
+                { label: "📸 Instagram", href: "https://www.instagram.com/rugbyradarco/", bg: "#fff" },
+                { label: "🐦 Twitter / X", href: "https://x.com/rugbyradar", bg: "#fff" },
+                { label: "🎵 TikTok", href: "https://www.tiktok.com/@rugbyradar", bg: "#fff" },
               ].map((s) => (
                 <a key={s.href} href={s.href} target="_blank" rel="noopener noreferrer"
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.08)", color: "#fff", textDecoration: "none", borderRadius: "var(--radius)", padding: "10px", marginBottom: 8, fontFamily: "var(--font-archivo)", fontWeight: 700, fontSize: "0.82rem" }}>

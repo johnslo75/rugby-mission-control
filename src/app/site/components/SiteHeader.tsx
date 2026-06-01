@@ -2,18 +2,28 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 const NAV = [
+  { label: "Home", href: "/site" },
   { label: "Latest", href: "/site/latest" },
-  { label: "Ireland", href: "/site/category/ireland" },
-  { label: "Shithousery", href: "/site/category/shithousery" },
+  { label: "Ireland 🇮🇪", href: "/site/category/ireland" },
+  { label: "Shithousery 💩", href: "/site/category/shithousery" },
   { label: "Hot Takes 🔥", href: "/site/category/hot-takes", hot: true },
   { label: "Tactical", href: "/site/category/tactical" },
-  { label: "Underdog", href: "/site/category/underdog" },
-  { label: "Results 🏆", href: "/site/category/results" },
-  { label: "RWC 2027", href: "/site/category/world-cup", pill: true },
+  { label: "World Cup 2027 🏆", href: "/site/category/world-cup", pill: true },
+  { label: "Radar", href: "/site/radar" },
 ];
+
+function RadarIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <circle cx="14" cy="14" r="3" fill="#e8ff3a" />
+      <circle cx="14" cy="14" r="7" stroke="#e8ff3a" strokeWidth="1.5" strokeOpacity="0.6" fill="none" />
+      <circle cx="14" cy="14" r="11" stroke="#e8ff3a" strokeWidth="1.2" strokeOpacity="0.3" fill="none" />
+      <line x1="14" y1="14" x2="14" y2="3" stroke="#e8ff3a" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.8" />
+    </svg>
+  );
+}
 
 export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,16 +33,16 @@ export default function SiteHeader() {
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 20px" }}>
         {/* Logo row */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0 10px" }}>
-          <Link href="/site" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-            <div style={{ width: 48, height: 48, borderRadius: "50%", overflow: "hidden", flexShrink: 0, border: "2px solid #0a7c3e" }}>
-              <Image src="/logo.jpg" alt="Rugby Shithousery" width={48} height={48} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-            </div>
+          <Link href="/site" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+            <RadarIcon />
             <div>
-              <div className="font-archivo" style={{ fontWeight: 900, fontSize: "1.35rem", lineHeight: 1.1, color: "#0d0d0d" }}>
-                Rugby <span style={{ color: "#0a7c3e" }}>Shit</span>housery
+              <div className="font-archivo" style={{ fontWeight: 900, fontSize: "1.35rem", lineHeight: 1.05, letterSpacing: "-0.02em" }}>
+                <span style={{ color: "#ffffff" }}>RUGBY</span>
+                {" "}
+                <span style={{ color: "#00a86b" }}>RADAR</span>
               </div>
-              <div className="font-archivo-narrow" style={{ fontSize: "0.72rem", color: "#666", fontWeight: 500, letterSpacing: "0.03em" }}>
-                The cynical art of winning rugby
+              <div className="font-archivo-narrow" style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", fontWeight: 500, letterSpacing: "0.03em" }}>
+                Rugby intelligence for serious fans
               </div>
             </div>
           </Link>
@@ -44,9 +54,9 @@ export default function SiteHeader() {
             className="mobile-menu-btn"
             aria-label="Menu"
           >
-            <div style={{ width: 22, height: 2, background: "#333", marginBottom: 5 }} />
-            <div style={{ width: 22, height: 2, background: "#333", marginBottom: 5 }} />
-            <div style={{ width: 22, height: 2, background: "#333" }} />
+            <div style={{ width: 22, height: 2, background: "rgba(255,255,255,0.7)", marginBottom: 5 }} />
+            <div style={{ width: 22, height: 2, background: "rgba(255,255,255,0.7)", marginBottom: 5 }} />
+            <div style={{ width: 22, height: 2, background: "rgba(255,255,255,0.7)" }} />
           </button>
         </div>
 
@@ -66,7 +76,7 @@ export default function SiteHeader() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div style={{ background: "#fff", borderTop: "1px solid #e2e2e2", padding: "12px 20px" }}>
+        <div style={{ background: "#0a2540", borderTop: "1px solid rgba(255,255,255,0.1)", padding: "12px 20px" }}>
           {NAV.map((item) => (
             <Link
               key={item.href}

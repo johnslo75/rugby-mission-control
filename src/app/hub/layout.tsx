@@ -3,8 +3,8 @@ import Providers from "./providers";
 import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "Mission Control — Rugby Shithousery",
-  description: "Daily operations dashboard for Rugby Shithousery content",
+  title: "Rugby Radar — Mission Control",
+  description: "Daily operations dashboard for Rugby Radar content",
 };
 
 export default function HubLayout({ children }: { children: React.ReactNode }) {

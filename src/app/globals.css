@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --green: #00C853;
+  --green: #00a86b;
 }
 
 * {
@@ -32,7 +32,7 @@ body {
     @apply text-base font-bold text-gray-900 tracking-tight;
   }
   .btn-primary {
-    @apply bg-[#00C853] text-white font-semibold px-3 py-1.5 rounded-lg hover:bg-[#00a844] transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-[#00a86b] text-white font-semibold px-3 py-1.5 rounded-lg hover:bg-[#00a844] transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-ghost {
     @apply bg-gray-100 text-gray-700 font-medium px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors;
@@ -41,6 +41,6 @@ body {
     @apply block text-xs text-gray-500 mb-1 font-medium;
   }
   .field-input {
-    @apply w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00C853] transition-colors;
+    @apply w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00a86b] transition-colors;
   }
 }

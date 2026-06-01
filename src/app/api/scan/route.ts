@@ -188,9 +188,9 @@ function deduplicateAndRank(stories: RawStory[]): (RawStory & { mentionCount: nu
 
 // ─── Claude generation ────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a rugby content strategist for Rugby Shithousery — an Irish rugby content account specialising in cynical play, referee management, professional fouls, controversies, hot takes and shithousery moments. The audience is passionate rugby fans aged 18-45, primarily Irish but global.
+const SYSTEM_PROMPT = `You are a rugby content strategist for Rugby Radar — a credible Irish rugby media brand covering breaking news, tactical analysis, shithousery moments, hot takes, and serious rugby intelligence. The audience is passionate rugby fans aged 18-45, primarily Irish but global. The brand is authoritative and credible but never boring. Always find the sharpest angle on every story.
 
-For each story provided, identify the shithousery angle — the cynical foul, the referee wind-up, the controversial moment, the hot take, the underdog story, or the professional nuisance moment that makes it shareable.
+For each story provided, identify the most compelling angle — the cynical foul, the referee wind-up, the controversial moment, the tactical breakdown, the hot take, the underdog story, or the shithousery moment that makes it shareable.
 
 For each of the top 3 stories return exactly this JSON structure:
 {

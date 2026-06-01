@@ -446,14 +446,14 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
           excerpt: idea.hook,
           body,
           category: "Shithousery",
-          author: "Rugby Shithousery",
+          author: "Rugby Radar",
           date: new Date().toISOString().slice(0, 10),
           imageUrl: "",
           featured: false,
           published: true,
         }),
       });
-      alert(`✅ Published to rugbyshithousery.com!`);
+      alert(`✅ Published to rugbyradar.co!`);
     } catch {
       alert("Failed to publish. Please try again.");
     } finally {

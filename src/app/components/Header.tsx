@@ -52,9 +52,9 @@ export default function Header({ postsThisWeek }: Props) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-              <img src="/logo.jpg" alt="Rugby Shithousery" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid #00C853" }} />
-              Rugby Shithousery
-              <span className="text-[#00C853]"> — Mission Control</span>
+              <img src="/logo.jpg" alt="Rugby Radar" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid #00a86b" }} />
+              Rugby Radar
+              <span style={{ color: "#00a86b" }}> — Mission Control</span>
             </h1>
           </div>
           <div className="flex flex-wrap gap-3 text-sm">
@@ -71,11 +71,11 @@ export default function Header({ postsThisWeek }: Props) {
                     onKeyDown={(e) => e.key === "Enter" && saveFollowers()}
                     autoFocus
                   />
-                  <button onClick={saveFollowers} disabled={saving} className="text-[#00C853] hover:text-green-700 transition-colors text-xs font-semibold">Save</button>
+                  <button onClick={saveFollowers} disabled={saving} className="text-[#00a86b] hover:text-green-700 transition-colors text-xs font-semibold">Save</button>
                   <button onClick={() => setEditing(false)} className="text-gray-400 hover:text-gray-700 transition-colors text-xs">✕</button>
                 </div>
               ) : (
-                <button onClick={() => { setDraft(String(followers)); setEditing(true); }} className="text-gray-900 font-bold hover:text-[#00C853] transition-colors">
+                <button onClick={() => { setDraft(String(followers)); setEditing(true); }} className="text-gray-900 font-bold hover:text-[#00a86b] transition-colors">
                   {followers.toLocaleString()}
                 </button>
               )}
@@ -106,7 +106,7 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
   return (
     <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
       <span className="text-gray-400 text-xs uppercase tracking-wide">{label}</span>
-      <span className={`font-bold ${highlight ? "text-[#00C853]" : "text-gray-900"}`}>{value}</span>
+      <span className={`font-bold ${highlight ? "text-[#00a86b]" : "text-gray-900"}`}>{value}</span>
     </div>
   );
 }

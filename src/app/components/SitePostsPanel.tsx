@@ -74,7 +74,7 @@ export default function SitePostsPanel() {
         <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
           <h3 className="font-bold text-gray-900">All Stories ({stories.length})</h3>
           <a
-            href={process.env.NEXT_PUBLIC_SITE_URL || "https://rugbyshithousery.com"}
+            href={process.env.NEXT_PUBLIC_SITE_URL || "https://rugbyradar.co"}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-[#00C853] hover:underline"

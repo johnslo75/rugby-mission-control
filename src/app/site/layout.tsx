@@ -26,13 +26,13 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Rugby Shithousery — Ireland's Home of Rugby Controversy",
-    template: "%s | Rugby Shithousery",
+    default: "Rugby Radar — Rugby Intelligence for Serious Fans",
+    template: "%s | Rugby Radar",
   },
   description:
-    "The cynical art of winning rugby. Irish rugby opinion, hot takes, shithousery moments, tactical breakdowns and World Cup 2027 coverage.",
+    "Rugby intelligence for serious fans. Breaking news, tactical analysis, shithousery moments, hot takes, and World Cup 2027 coverage. Irish-owned. Globally minded.",
   openGraph: {
-    siteName: "Rugby Shithousery",
+    siteName: "Rugby Radar",
     type: "website",
     locale: "en_IE",
   },

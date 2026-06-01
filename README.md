@@ -1,11 +1,11 @@
-# Rugby Shithousery
+# Rugby Radar
 
 Two apps, one Next.js codebase:
 
 | URL | What it is |
 |-----|-----------|
-| `rugbyshithousery.com` | Public rugby news & opinion site |
-| `hub.rugbyshithousery.com` | Mission Control dashboard |
+| `rugbyradar.co` | Public rugby news & opinion site |
+| `hub.rugbyradar.co` | Mission Control dashboard |
 
 ---
 
@@ -38,15 +38,15 @@ Railway auto-deploys on every push.
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
-NEXT_PUBLIC_SITE_URL=https://rugbyshithousery.com
-NEXT_PUBLIC_HUB_URL=https://hub.rugbyshithousery.com
+NEXT_PUBLIC_SITE_URL=https://rugbyradar.co
+NEXT_PUBLIC_HUB_URL=https://hub.rugbyradar.co
 ```
 
 ### Step 3 — Domains (Railway → Settings → Networking → Domains)
 
 Add both:
-- `rugbyshithousery.com`
-- `hub.rugbyshithousery.com`
+- `rugbyradar.co`
+- `hub.rugbyradar.co`
 
 ### Step 4 — Cloudflare DNS
 
@@ -63,11 +63,11 @@ For the hub subdomain, add a second CNAME record:
 ```
 src/
   app/
-    site/          ← rugbyshithousery.com (public website)
+    site/          ← rugbyradar.co (public website)
       page.tsx     ← homepage
       [slug]/      ← article pages
       category/    ← category pages
-    hub/           ← hub.rugbyshithousery.com (Mission Control)
+    hub/           ← hub.rugbyradar.co (Mission Control)
       page.tsx     ← dashboard
     api/           ← shared API routes
       checklist/

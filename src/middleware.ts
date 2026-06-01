@@ -11,6 +11,7 @@ export async function middleware(req: NextRequest) {
   // Determine if this is a hub request
   const isHub =
     host.startsWith("hub.") ||
+    host.includes("hub.rugbyradar") ||
     host.includes("hub.rugbyshithousery") ||
     pathname.startsWith("/hub");
 
@@ -36,7 +37,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Rewrite public site — rugbyshithousery.com/* → /site/*
+  // Rewrite public site — rugbyradar.co/* → /site/*
   if (!isHub && !pathname.startsWith("/site") && !pathname.startsWith("/api") && !pathname.startsWith("/_next") && !pathname.includes(".")) {
     const url = req.nextUrl.clone();
     url.pathname = `/site${pathname === "/" ? "" : pathname}`;

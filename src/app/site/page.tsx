@@ -46,7 +46,7 @@ function HeroCard({ story }: { story: Story }) {
           <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden" }}>
             <iframe
               src={s.videoUrl}
-              title="Rugby Shithousery"
+              title="Rugby Radar"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               referrerPolicy="strict-origin-when-cross-origin"
@@ -263,6 +263,7 @@ export default async function HomePage() {
   const hotTake   = await getHotTake();
 
   const categories = ["ireland", "shithousery", "hot-takes", "tactical", "underdog", "world-cup"];
+  const shithouseryStories = stories.filter((s) => s.category?.toLowerCase() === "shithousery").slice(0, 3);
 
   return (
     <>
@@ -328,15 +329,15 @@ export default async function HomePage() {
               <div className="widget-header dark">About</div>
               <div className="widget-body">
                 <p className="font-dm-sans" style={{ fontSize: "0.85rem", color: "var(--mid)", lineHeight: 1.6, marginBottom: 14 }}>
-                  Ireland&apos;s home of rugby opinion. Cynical play, ref management, professional fouls — the side of rugby nobody else covers honestly.
+                  Rugby Radar is your home for rugby intelligence — breaking news, tactical analysis, shithousery moments, and the stories serious fans actually care about. Irish-owned. Globally minded.
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <a href="https://www.instagram.com/rugbyshithousery/" target="_blank" rel="noopener noreferrer"
-                    style={{ flex: 1, background: "var(--ink)", color: "#fff", textAlign: "center", padding: "8px 0", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 700, textDecoration: "none", fontFamily: "var(--font-archivo)" }}>
+                  <a href="https://www.instagram.com/rugbyradarco/" target="_blank" rel="noopener noreferrer"
+                    style={{ flex: 1, background: "var(--primary)", color: "#fff", textAlign: "center", padding: "8px 0", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 700, textDecoration: "none", fontFamily: "var(--font-archivo)" }}>
                     📸 Instagram
                   </a>
-                  <a href="https://www.tiktok.com/@rugbyshithousery" target="_blank" rel="noopener noreferrer"
-                    style={{ flex: 1, background: "var(--green)", color: "#fff", textAlign: "center", padding: "8px 0", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 700, textDecoration: "none", fontFamily: "var(--font-archivo)" }}>
+                  <a href="https://www.tiktok.com/@rugbyradar" target="_blank" rel="noopener noreferrer"
+                    style={{ flex: 1, background: "var(--accent)", color: "#fff", textAlign: "center", padding: "8px 0", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 700, textDecoration: "none", fontFamily: "var(--font-archivo)" }}>
                     🎵 TikTok
                   </a>
                 </div>
@@ -360,6 +361,25 @@ export default async function HomePage() {
           </aside>
         </div>
       </div>
+
+      {/* ── Shithousery section ── */}
+      {shithouseryStories.length > 0 && (
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 20px 48px" }}>
+          <section>
+            <div className="section-header">
+              <span className="section-header-label">💩 Shithousery</span>
+              <div className="section-header-rule" />
+              <a href="/site/category/shithousery" className="section-header-link">All shithousery →</a>
+            </div>
+            <p className="font-archivo-narrow" style={{ fontSize: "0.85rem", color: "var(--mid)", marginBottom: 20, fontStyle: "italic" }}>
+              The cynical art of winning rugby. Professional fouls, referee management, dark arts, and controversy.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+              {shithouseryStories.map((s, i) => <FeaturedCard key={s.id} story={s} num={i + 1} />)}
+            </div>
+          </section>
+        </div>
+      )}
 
       <SiteFooter />
     </>

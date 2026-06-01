@@ -1,9 +1,12 @@
 /* ─── Design tokens ─────────────────────────────────── */
 .site-root {
-  --green:        #0a7c3e;
-  --green-bright: #00C853;
-  --green-dark:   #064d26;
-  --yellow:       #FFD600;
+  --primary:      #0a2540;
+  --accent:       #00a86b;
+  --accent-2:     #e8ff3a;
+  --green:        #00a86b;
+  --green-bright: #00a86b;
+  --green-dark:   #007a4d;
+  --yellow:       #e8ff3a;
   --red:          #e5162a;
   --ink:          #0d0d0d;
   --ink-2:        #1f1f1f;
@@ -11,7 +14,7 @@
   --mid:          #666;
   --muted:        #999;
   --rule:         #e2e2e2;
-  --bg:           #f4f4f2;
+  --bg:           #f4f4f4;
   --card:         #ffffff;
   --radius:       4px;
 
@@ -40,8 +43,8 @@
 
 /* ─── Site header ────────────────────────────────────── */
 .site-header {
-  background: #fff;
-  border-bottom: 3px solid var(--green);
+  background: var(--primary);
+  border-bottom: 3px solid var(--accent);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -54,26 +57,26 @@
   font-size: 0.78rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: rgba(255,255,255,0.75);
   text-decoration: none;
   padding: 6px 10px;
   border-radius: var(--radius);
   transition: color 0.15s, background 0.15s;
   white-space: nowrap;
 }
-.nav-link:hover { color: var(--green); background: #f0faf4; }
-.nav-link.hot   { color: var(--red); }
-.nav-link.hot:hover { background: #fff5f5; }
+.nav-link:hover { color: var(--accent-2); background: rgba(255,255,255,0.08); }
+.nav-link.hot   { color: #ff6b6b; }
+.nav-link.hot:hover { color: #ff6b6b; background: rgba(229,22,42,0.15); }
 .nav-link.pill  {
-  background: var(--green);
-  color: #fff;
+  background: var(--accent-2);
+  color: var(--primary);
   padding: 5px 12px;
 }
-.nav-link.pill:hover { background: var(--green-dark); color: #fff; }
+.nav-link.pill:hover { background: #d4eb2e; color: var(--primary); }
 
 /* ─── Breaking ticker ────────────────────────────────── */
 .ticker-wrap {
-  background: var(--green);
+  background: var(--primary);
   overflow: hidden;
   white-space: nowrap;
   padding: 8px 0;
@@ -350,8 +353,8 @@
 
 /* ─── Footer ─────────────────────────────────────────── */
 .site-footer {
-  background: var(--ink-2);
-  border-top: 3px solid var(--green);
+  background: var(--primary);
+  border-top: 3px solid var(--accent);
   color: #888;
   margin-top: 60px;
 }
