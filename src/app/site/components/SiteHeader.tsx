@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const NAV = [
   { label: "Home", href: "/site" },
@@ -34,7 +35,7 @@ export default function SiteHeader() {
         {/* Logo row */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0 10px" }}>
           <Link href="/site" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-            <RadarIcon />
+            <Image src="/rugbyradarlogo.png" alt="Rugby Radar" width={48} height={48} style={{ objectFit: "contain" }} />
             <div>
               <div className="font-archivo" style={{ fontWeight: 900, fontSize: "1.35rem", lineHeight: 1.05, letterSpacing: "-0.02em" }}>
                 <span style={{ color: "#ffffff" }}>RUGBY</span>

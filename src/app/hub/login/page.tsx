@@ -57,11 +57,11 @@ function LoginForm() {
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <Image
-            src="/logo.jpg"
+            src="/rugbyradarlogo.png"
             alt="Rugby Radar"
             width={64}
             height={64}
-            style={{ borderRadius: "50%", border: "2px solid #00a86b", marginBottom: 16 }}
+            style={{ marginBottom: 16, objectFit: "contain" }}
           />
           <p style={{ color: "#00a86b", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>
             Mission Control
