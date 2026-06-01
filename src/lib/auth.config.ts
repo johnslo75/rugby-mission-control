@@ -1,46 +1,29 @@
 import type { NextAuthConfig } from "next-auth";
 
 // Edge-safe config — no Node.js imports (no pg, no bcrypt).
-// Used by middleware to check JWT sessions without hitting the DB.
+// Used by middleware only to check JWT sessions.
 export const authConfig: NextAuthConfig = {
-  secret: process.env.AUTH_SECRET,
-  session: { strategy: "jwt" },
   pages: {
     signIn: "/hub/login",
   },
-  providers: [], // providers only needed in the full auth.ts
+  providers: [],
   callbacks: {
     authorized({ auth, request }) {
       const { pathname } = request.nextUrl;
-      const isLoggedIn = !!auth?.user;
+      const host = request.headers.get("host") || "";
 
       const isHub =
-        request.headers.get("host")?.startsWith("hub.") ||
-        request.headers.get("host")?.includes("hub.rugbyshithousery") ||
+        host.startsWith("hub.") ||
+        host.includes("hub.rugbyshithousery") ||
         pathname.startsWith("/hub");
 
-      if (!isHub) return true; // public site — always allow
+      if (!isHub) return true;
 
       const isLoginPage = pathname === "/hub/login" || pathname === "/login";
       const isAuthApi = pathname.startsWith("/api/auth");
+      if (isLoginPage || isAuthApi) return true;
 
-      if (isLoginPage || isAuthApi) return true; // always allow login page
-
-      return isLoggedIn; // everything else in hub requires login
-    },
-    jwt({ token, user }) {
-      if (user) {
-        token.role = (user as { role?: string }).role;
-        token.id = user.id;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      if (session.user) {
-        (session.user as { role?: string; id?: string }).role = token.role as string;
-        (session.user as { role?: string; id?: string }).id = token.id as string;
-      }
-      return session;
+      return !!auth?.user;
     },
   },
 };
