@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { ScanResult, ProcessedStory, ContentIdea } from "../api/scan/route";
+import { findTeamLogosInText } from "../site/components/teamLogos";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -263,6 +264,20 @@ function StoryCard({
               )}
             </div>
             <p className="text-sm font-semibold text-gray-900 leading-snug mb-2">{story.headline}</p>
+            {(() => {
+              const teams = findTeamLogosInText(story.headline);
+              if (teams.length === 0) return null;
+              return (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {teams.map(({ team, logo }) => (
+                    <div key={team} className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5">
+                      <img src={logo} alt={team} style={{ width: 16, height: 16, objectFit: "contain" }} />
+                      <span className="text-xs text-gray-500 font-medium">{team}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`text-xs border rounded px-2 py-0.5 font-bold ${viralColor(story.viral_score)}`}>
                 🔥 {story.viral_score}/10

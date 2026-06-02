@@ -5,6 +5,7 @@ import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import CategoryBadge from "../../components/CategoryBadge";
 import { getAllStories, readTime, formatDate, daysUntil } from "../../components/utils";
+import { findTeamLogosInText } from "../../components/teamLogos";
 import type { Story } from "../../../api/stories/route";
 
 type StoryExt = Story & { imageEmoji?: string; imageBg?: string; viralScore?: number; matchInfo?: string };
@@ -94,6 +95,22 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 )}
               </div>
             </header>
+
+            {/* Team logos */}
+            {(() => {
+              const teams = findTeamLogosInText(`${story.title} ${story.excerpt} ${story.body}`);
+              if (teams.length === 0) return null;
+              return (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24, alignItems: "center" }}>
+                  {teams.map(({ team, logo }) => (
+                    <div key={team} style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--bg)", border: "1px solid var(--rule)", borderRadius: "var(--radius)", padding: "4px 10px" }}>
+                      <img src={logo} alt={team} style={{ width: 24, height: 24, objectFit: "contain" }} />
+                      <span className="font-archivo" style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--ink-3)" }}>{team}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Hero image */}
             <div style={{ height: 300, background: story.imageBg || "#1a2a1a", borderRadius: "var(--radius)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "5rem", marginBottom: 32, position: "relative", overflow: "hidden" }}>
