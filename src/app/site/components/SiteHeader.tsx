@@ -11,7 +11,8 @@ const NAV = [
   { label: "Shithousery 💩", href: "/site/category/shithousery" },
   { label: "Hot Takes 🔥", href: "/site/category/hot-takes", hot: true },
   { label: "Tactical", href: "/site/category/tactical" },
-  { label: "World Cup 2027 🏆", href: "/site/category/world-cup", pill: true },
+  { label: "Results 🏆", href: "/site/category/results" },
+  { label: "World Cup 2027", href: "/site/category/world-cup", pill: true },
   { label: "Radar", href: "/site/radar" },
 ];
 

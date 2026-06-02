@@ -23,6 +23,60 @@ async function copyToClipboard(text: string) {
   await navigator.clipboard.writeText(text);
 }
 
+// ─── Site categories ──────────────────────────────────────────────────────────
+
+const SITE_CATEGORIES = [
+  { label: "🇮🇪 Ireland", value: "Ireland" },
+  { label: "💩 Shithousery", value: "Shithousery" },
+  { label: "🔥 Hot Takes", value: "Hot Takes" },
+  { label: "📐 Tactical", value: "Tactical" },
+  { label: "🏆 Results", value: "Results" },
+  { label: "🌍 World Cup 2027", value: "World Cup" },
+  { label: "📡 Radar", value: "Radar" },
+  { label: "🐶 Underdog", value: "Underdog" },
+];
+
+function PublishDropdown({ idea, story, onPublish, publishing, ideaKey }: {
+  idea: ContentIdea;
+  story: ProcessedStory;
+  onPublish: (idea: ContentIdea, story: ProcessedStory, category: string) => void;
+  publishing: string | null;
+  ideaKey: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const isPublishing = publishing === `${idea.angle_title}-publish`;
+
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        disabled={isPublishing}
+        className="btn-ghost text-xs py-1.5 px-3 border-blue-200 text-blue-600 hover:bg-blue-50 disabled:opacity-50"
+      >
+        {isPublishing ? "⏳ Publishing…" : "🌐 Publish to Site ▾"}
+      </button>
+      {open && (
+        <div style={{
+          position: "absolute", bottom: "100%", left: 0, marginBottom: 4,
+          background: "#fff", border: "1px solid #e2e2e2", borderRadius: 6,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.12)", zIndex: 50, minWidth: 180,
+        }}>
+          {SITE_CATEGORIES.map((cat) => (
+            <button
+              key={cat.value}
+              onClick={() => { setOpen(false); onPublish(idea, story, cat.value); }}
+              className="w-full text-left text-xs px-3 py-2 hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors"
+              style={{ display: "block", borderBottom: "1px solid #f0f0f0" }}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Idea Card ────────────────────────────────────────────────────────────────
 
 function IdeaCard({
@@ -42,7 +96,7 @@ function IdeaCard({
   scanId: string;
   onSave: (ideaKey: string, idea: ContentIdea, scanId: string) => void;
   onPost: (ideaKey: string, idea: ContentIdea, scanId: string) => void;
-  onPublish: (idea: ContentIdea, story: ProcessedStory) => void;
+  onPublish: (idea: ContentIdea, story: ProcessedStory, category: string) => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
@@ -160,12 +214,10 @@ function IdeaCard({
         <button onClick={() => copy(`${idea.caption}\n\n${idea.hashtags.map((t) => `#${t}`).join(" ")}`, "caption")} className="btn-ghost text-xs py-1.5 px-3">
           {copied === "caption" ? "✓ Copied!" : "📋 Copy Caption + Tags"}
         </button>
-        <button onClick={() => onPost(ideaKey, idea, scanId)} className="btn-ghost text-xs py-1.5 px-3 border-emerald-200 text-[#00C853] hover:bg-emerald-50">
+        <button onClick={() => onPost(ideaKey, idea, scanId)} className="btn-ghost text-xs py-1.5 px-3 border-emerald-200 text-[#00a86b] hover:bg-emerald-50">
           ✅ Mark as Posted
         </button>
-        <button onClick={() => onPublish(idea, story)} className="btn-ghost text-xs py-1.5 px-3 border-blue-200 text-blue-600 hover:bg-blue-50">
-          🌐 Publish to Site
-        </button>
+        <PublishDropdown idea={idea} story={story} onPublish={onPublish} publishing={publishing} ideaKey={ideaKey} />
       </div>
     </div>
   );
@@ -186,7 +238,7 @@ function StoryCard({
   scanId: string;
   onSave: (ideaKey: string, idea: ContentIdea, scanId: string) => void;
   onPost: (ideaKey: string, idea: ContentIdea, scanId: string) => void;
-  onPublish: (idea: ContentIdea, story: ProcessedStory) => void;
+  onPublish: (idea: ContentIdea, story: ProcessedStory, category: string) => void;
 }) {
   const [expanded, setExpanded] = useState(storyIdx === 0);
 
@@ -433,7 +485,7 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
     alert("✅ Logged to Performance Tracker!");
   }
 
-  async function handlePublish(idea: ContentIdea, story: ProcessedStory) {
+  async function handlePublish(idea: ContentIdea, story: ProcessedStory, category: string) {
     const key = `${idea.angle_title}-publish`;
     setPublishing(key);
     try {
@@ -445,7 +497,7 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
           title: idea.angle_title,
           excerpt: idea.hook,
           body,
-          category: "Shithousery",
+          category,
           author: "Rugby Radar",
           date: new Date().toISOString().slice(0, 10),
           imageUrl: "",
@@ -453,7 +505,7 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
           published: true,
         }),
       });
-      alert(`✅ Published to rugbyradar.co!`);
+      alert(`✅ Published to rugbyradar.co/${category.toLowerCase().replace(" ", "-")}!`);
     } catch {
       alert("Failed to publish. Please try again.");
     } finally {
@@ -517,7 +569,7 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
               scanId={latestScan.id}
               onSave={handleSave}
               onPost={handlePost}
-              onPublish={publishing ? () => {} : handlePublish}
+              onPublish={handlePublish}
             />
           ))}
         </div>

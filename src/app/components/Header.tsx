@@ -10,7 +10,7 @@ function daysUntil(target: Date): number {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
-const FIFA_DATE = new Date("2026-06-11");
+const SIX_NATIONS_DATE = new Date("2026-02-07");
 const RWC_DATE = new Date("2027-10-01");
 
 interface Props {
@@ -58,7 +58,7 @@ export default function Header({ postsThisWeek }: Props) {
             </h1>
           </div>
           <div className="flex flex-wrap gap-3 text-sm">
-            <Stat label="FIFA WC 2026" value={`${daysUntil(FIFA_DATE)}d`} />
+            <Stat label="Six Nations 2026" value={`${daysUntil(SIX_NATIONS_DATE)}d`} />
             <Stat label="RWC 2027" value={`${daysUntil(RWC_DATE)}d`} />
             <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
               <span className="text-gray-400 text-xs uppercase tracking-wide">Followers</span>

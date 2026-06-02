@@ -21,7 +21,7 @@ async function getHotTake(): Promise<HotTake | null> {
   } catch { return null; }
 }
 
-const FIFA = new Date("2026-06-11");
+const SIX_NATIONS = new Date("2026-02-07");
 const RWC  = new Date("2027-10-01");
 
 // ── Image placeholder ──────────────────────────────────────────────
@@ -150,15 +150,15 @@ function StoryRow({ story }: { story: Story }) {
 // ── Countdown card ─────────────────────────────────────────────────
 
 function CountdownCard() {
-  const fifaDays = daysUntil(FIFA);
+  const sixNationsDays = daysUntil(SIX_NATIONS);
   const rwcDays  = daysUntil(RWC);
   return (
     <div className="countdown-card" style={{ marginBottom: 16 }}>
       <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #1e1e1e" }}>
-        <div className="countdown-label">Days to FIFA WC 2026</div>
-        <div className="countdown-number">{fifaDays}</div>
+        <div className="countdown-label">Days to Six Nations 2026</div>
+        <div className="countdown-number">{sixNationsDays}</div>
         <div className="font-archivo-narrow" style={{ fontSize: "0.72rem", color: "#666", marginTop: 2 }}>
-          11 June 2026 · USA / Canada / Mexico
+          7 February 2026 · Europe
         </div>
       </div>
       <div>
