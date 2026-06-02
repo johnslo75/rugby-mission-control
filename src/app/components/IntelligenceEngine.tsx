@@ -89,6 +89,7 @@ function IdeaCard({
   onSave,
   onPost,
   onPublish,
+  publishing,
 }: {
   idea: ContentIdea;
   story: ProcessedStory;
@@ -98,6 +99,7 @@ function IdeaCard({
   onSave: (ideaKey: string, idea: ContentIdea, scanId: string) => void;
   onPost: (ideaKey: string, idea: ContentIdea, scanId: string) => void;
   onPublish: (idea: ContentIdea, story: ProcessedStory, category: string) => void;
+  publishing: string | null;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
@@ -233,6 +235,7 @@ function StoryCard({
   onSave,
   onPost,
   onPublish,
+  publishing,
 }: {
   story: ProcessedStory;
   storyIdx: number;
@@ -240,6 +243,7 @@ function StoryCard({
   onSave: (ideaKey: string, idea: ContentIdea, scanId: string) => void;
   onPost: (ideaKey: string, idea: ContentIdea, scanId: string) => void;
   onPublish: (idea: ContentIdea, story: ProcessedStory, category: string) => void;
+  publishing: string | null;
 }) {
   const [expanded, setExpanded] = useState(storyIdx === 0);
 
@@ -319,6 +323,7 @@ function StoryCard({
               onSave={onSave}
               onPost={onPost}
               onPublish={onPublish}
+              publishing={publishing}
             />
           ))}
         </div>
@@ -599,6 +604,7 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
               onSave={handleSave}
               onPost={handlePost}
               onPublish={handlePublish}
+              publishing={publishing}
             />
           ))}
         </div>
