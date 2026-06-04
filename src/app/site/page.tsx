@@ -61,6 +61,15 @@ function HeroCard({ story }: { story: Story }) {
               <div className="hero-overlay"><span className="match-info">{s.matchInfo}</span></div>
             )}
           </div>
+        ) : s.imageUrl ? (
+          <div style={{ position: "relative", width: "100%", height: "100%" }}>
+            <img src={s.imageUrl} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 280 }} />
+            <div className="hero-cat-badge"><CategoryBadge category={story.category} /></div>
+            {s.viralScore && <div className="hero-viral-badge">🔥 {s.viralScore}/10</div>}
+            {s.matchInfo && (
+              <div className="hero-overlay"><span className="match-info">{s.matchInfo}</span></div>
+            )}
+          </div>
         ) : (
           <>
             <div className="hero-ghost-number">01</div>
