@@ -37,6 +37,27 @@ function EditModal({ story, onSave, onClose, isNew }: {
 }) {
   const [draft, setDraft] = useState({ ...story });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json() as { url?: string; error?: string };
+      if (!res.ok || data.error) throw new Error(data.error || "Upload failed");
+      setDraft({ ...draft, imageUrl: data.url } as Story & { imageUrl?: string });
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function save() {
     setSaving(true);
@@ -114,20 +135,28 @@ function EditModal({ story, onSave, onClose, isNew }: {
             </div>
           </div>
 
-          {/* Image URL */}
+          {/* Image */}
           <div>
-            <label className="field-label">Image URL</label>
-            <input
-              className="field-input"
-              value={(draft as Story & { imageUrl?: string }).imageUrl || ""}
-              onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value } as Story & { imageUrl?: string })}
-              placeholder="https://..."
-            />
+            <label className="field-label">Image</label>
+            <div className="flex gap-2 items-center mb-2">
+              <input
+                className="field-input"
+                value={(draft as Story & { imageUrl?: string }).imageUrl || ""}
+                onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value } as Story & { imageUrl?: string })}
+                placeholder="Paste image URL or upload below…"
+              />
+            </div>
+            <label className={`inline-flex items-center gap-2 cursor-pointer text-xs px-3 py-1.5 rounded border font-medium transition-colors ${uploading ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-200 text-gray-400" : "bg-white border-blue-200 text-blue-600 hover:bg-blue-50"}`}>
+              {uploading ? "⏳ Uploading…" : "📁 Upload image"}
+              <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+            </label>
+            {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
             {(draft as Story & { imageUrl?: string }).imageUrl && (
               <img
                 src={(draft as Story & { imageUrl?: string }).imageUrl}
                 alt="preview"
-                className="mt-2 rounded-lg w-full h-40 object-cover"
+                className="mt-2 rounded-lg w-full object-cover"
+                style={{ maxHeight: 200 }}
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
               />
             )}
