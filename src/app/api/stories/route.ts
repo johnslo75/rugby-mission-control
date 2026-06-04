@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { invalidate } from "@/lib/cache";
 
 export interface Story {
   id: string;
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
     true, body.tags || []
   ]);
   const { rows } = await pool.query("SELECT * FROM stories WHERE id=$1", [id]);
+  invalidate("all-stories");
   return NextResponse.json(rowToStory(rows[0]));
 }
 
@@ -102,6 +104,7 @@ export async function PUT(req: NextRequest) {
     body.featured || false, body.viralScore || null, body.matchInfo || null,
     body.published || false, body.tags || []
   ]);
+  invalidate("all-stories");
   return NextResponse.json(body);
 }
 
@@ -109,5 +112,6 @@ export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   await pool.query("DELETE FROM stories WHERE id=$1", [id]);
+  invalidate("all-stories");
   return NextResponse.json({ ok: true });
 }
