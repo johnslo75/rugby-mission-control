@@ -6,6 +6,7 @@ import SiteFooter from "../../components/SiteFooter";
 import CategoryBadge from "../../components/CategoryBadge";
 import { getAllStories, readTime, formatDate, daysUntil } from "../../components/utils";
 import { findTeamLogosInText } from "../../components/teamLogos";
+import ShareButtons from "../../components/ShareButtons";
 import type { Story } from "../../../api/stories/route";
 
 type StoryExt = Story & { imageEmoji?: string; imageBg?: string; viralScore?: number; matchInfo?: string };
@@ -126,21 +127,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <div className="article-body" dangerouslySetInnerHTML={{ __html: story.body }} />
 
             {/* Share */}
-            <div style={{ marginTop: 40, paddingTop: 24, borderTop: "2px solid var(--rule)" }}>
-              <p className="font-archivo" style={{ fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 14, color: "var(--ink-3)" }}>
-                Share this
-              </p>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <a href={`https://twitter.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(articleUrl)}`}
-                  target="_blank" rel="noopener noreferrer" className="share-btn x">
-                  🐦 Share on X
-                </a>
-                <a href={`https://wa.me/?text=${shareText}%20${encodeURIComponent(articleUrl)}`}
-                  target="_blank" rel="noopener noreferrer" className="share-btn whatsapp">
-                  💬 WhatsApp
-                </a>
-              </div>
-            </div>
+            <ShareButtons articleUrl={articleUrl} title={story.title} />
 
             {/* Related */}
             {related.length > 0 && (
@@ -164,7 +151,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               </p>
               {[
                 { label: "📸 Instagram", href: "https://www.instagram.com/rugbyradarco/", bg: "#fff" },
-                { label: "🐦 Twitter / X", href: "https://x.com/rugbyradar", bg: "#fff" },
+                { label: "🐦 Twitter / X", href: "https://x.com/rugbyradarco", bg: "#fff" },
                 { label: "🎵 TikTok", href: "https://www.tiktok.com/@rugbyradar", bg: "#fff" },
               ].map((s) => (
                 <a key={s.href} href={s.href} target="_blank" rel="noopener noreferrer"

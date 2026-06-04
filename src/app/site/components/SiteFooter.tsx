@@ -68,7 +68,7 @@ export default function SiteFooter() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
               {[
                 { label: "📸 Instagram", href: "https://www.instagram.com/rugbyradar.co/" },
-                { label: "🐦 Twitter / X", href: "https://x.com/rugbyradar" },
+                { label: "🐦 Twitter / X", href: "https://x.com/rugbyradarco" },
                 { label: "🎵 TikTok", href: "https://www.tiktok.com/@rugbyradar3" },
                 { label: "▶️ YouTube", href: "https://youtube.com/@rugbyradar" },
               ].map((s) => (

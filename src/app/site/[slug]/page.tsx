@@ -120,7 +120,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg py-2.5 text-sm transition-colors">
                   📸 Instagram
                 </a>
-                <a href="https://x.com/rugbyradar" target="_blank" rel="noopener noreferrer"
+                <a href="https://x.com/rugbyradarco" target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg py-2.5 text-sm transition-colors">
                   🐦 Twitter/X
                 </a>
