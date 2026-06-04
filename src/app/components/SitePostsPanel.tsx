@@ -14,22 +14,48 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const CATEGORIES = ["Ireland", "Shithousery", "Hot Takes", "Tactical", "Results", "World Cup", "Radar", "Underdog"];
 
-function EditModal({ story, onSave, onClose }: {
+const BLANK_STORY: Story = {
+  id: "",
+  slug: "",
+  title: "",
+  excerpt: "",
+  body: "",
+  category: "Ireland",
+  author: "Rugby Radar",
+  date: new Date().toISOString().slice(0, 10),
+  imageUrl: "",
+  featured: false,
+  published: true,
+  tags: [],
+};
+
+function EditModal({ story, onSave, onClose, isNew }: {
   story: Story;
   onSave: (updated: Story) => void;
   onClose: () => void;
+  isNew?: boolean;
 }) {
   const [draft, setDraft] = useState({ ...story });
   const [saving, setSaving] = useState(false);
 
   async function save() {
     setSaving(true);
-    await fetch("/api/stories", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(draft),
-    });
-    onSave(draft);
+    if (isNew) {
+      const res = await fetch("/api/stories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      const created = await res.json() as Story;
+      onSave(created);
+    } else {
+      await fetch("/api/stories", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      onSave(draft);
+    }
     setSaving(false);
   }
 
@@ -40,7 +66,7 @@ function EditModal({ story, onSave, onClose }: {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="font-bold text-gray-900">Edit Story</h2>
+          <h2 className="font-bold text-gray-900">{isNew ? "New Story" : "Edit Story"}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
         </div>
 
@@ -134,7 +160,7 @@ function EditModal({ story, onSave, onClose }: {
         <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
           <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
           <button onClick={save} disabled={saving} className="btn-primary text-sm">
-            {saving ? "Saving…" : "Save changes"}
+            {saving ? "Saving…" : isNew ? "Publish story" : "Save changes"}
           </button>
         </div>
       </div>
@@ -146,6 +172,7 @@ export default function SitePostsPanel() {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Story | null>(null);
+  const [creatingNew, setCreatingNew] = useState(false);
 
   useEffect(() => {
     fetch("/api/stories?all=1")
@@ -184,6 +211,11 @@ export default function SitePostsPanel() {
     setEditing(null);
   }
 
+  function handleCreate(created: Story) {
+    setStories((prev) => [created, ...prev]);
+    setCreatingNew(false);
+  }
+
   const published = stories.filter((s) => s.published);
   const unpublished = stories.filter((s) => !s.published);
 
@@ -209,14 +241,22 @@ export default function SitePostsPanel() {
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
           <h3 className="font-bold text-gray-900">All Stories ({stories.length})</h3>
-          <a
-            href={process.env.NEXT_PUBLIC_SITE_URL || "https://rugbyradar.co"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-[#00a86b] hover:underline"
-          >
-            View site →
-          </a>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setCreatingNew(true)}
+              className="btn-primary text-xs py-1.5 px-3"
+            >
+              ✏️ New Story
+            </button>
+            <a
+              href={process.env.NEXT_PUBLIC_SITE_URL || "https://rugbyradar.co"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#00a86b] hover:underline"
+            >
+              View site →
+            </a>
+          </div>
         </div>
 
         {stories.length === 0 ? (
@@ -280,6 +320,16 @@ export default function SitePostsPanel() {
           story={editing}
           onSave={handleSave}
           onClose={() => setEditing(null)}
+        />
+      )}
+
+      {/* New story modal */}
+      {creatingNew && (
+        <EditModal
+          story={{ ...BLANK_STORY, date: new Date().toISOString().slice(0, 10) }}
+          onSave={handleCreate}
+          onClose={() => setCreatingNew(false)}
+          isNew
         />
       )}
     </div>
