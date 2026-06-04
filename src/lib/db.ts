@@ -9,6 +9,10 @@ function getPool(): Pool {
       ssl: process.env.DATABASE_URL?.includes("railway") || process.env.DATABASE_URL?.includes("rlwy")
         ? { rejectUnauthorized: false }
         : false,
+      max: 5,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 5000,
+      statement_timeout: 8000,
     });
   }
   return pool;

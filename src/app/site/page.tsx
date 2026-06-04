@@ -274,9 +274,9 @@ function ScoresSection({ scores }: { scores: Score[] }) {
 
 export default async function HomePage() {
   const [stories, scores, hotTake] = await Promise.all([
-    getAllStories(),
-    getWeekendScores(),
-    getHotTake(),
+    getAllStories().catch(() => []),
+    getWeekendScores().catch(() => []),
+    getHotTake().catch(() => null),
   ]);
   const hero      = stories.find((s) => (s as Story & { featured?: boolean }).featured) || stories[0];
   const rest      = stories.filter((s) => s.id !== hero?.id);
