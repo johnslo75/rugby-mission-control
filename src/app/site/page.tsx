@@ -62,8 +62,8 @@ function HeroCard({ story }: { story: Story }) {
             )}
           </div>
         ) : s.imageUrl ? (
-          <div style={{ position: "relative", width: "100%", height: "100%" }}>
-            <img src={s.imageUrl} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 280 }} />
+          <div style={{ position: "relative", width: "100%" }}>
+            <img src={s.imageUrl} alt={story.title} style={{ width: "100%", height: "auto", display: "block", maxHeight: 480, objectFit: "cover" }} />
             <div className="hero-cat-badge"><CategoryBadge category={story.category} /></div>
             {s.viralScore && <div className="hero-viral-badge">🔥 {s.viralScore}/10</div>}
             {s.matchInfo && (
