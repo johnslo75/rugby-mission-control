@@ -114,8 +114,18 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             })()}
 
             {/* Hero image */}
-            <div style={{ height: 300, background: story.imageBg || "#1a2a1a", borderRadius: "var(--radius)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "5rem", marginBottom: 32, position: "relative", overflow: "hidden" }}>
-              <span style={{ opacity: 0.2, fontSize: "12rem" }}>{story.imageEmoji || "🏉"}</span>
+            <div style={{ height: 360, background: story.imageBg || "#1a2a1a", borderRadius: "var(--radius)", marginBottom: 32, position: "relative", overflow: "hidden" }}>
+              {story.imageUrl ? (
+                <img
+                  src={story.imageUrl}
+                  alt={story.title}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+              ) : (
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ opacity: 0.2, fontSize: "12rem" }}>{story.imageEmoji || "🏉"}</span>
+                </div>
+              )}
               {story.matchInfo && (
                 <div style={{ position: "absolute", bottom: 12, left: 16 }}>
                   <span className="match-info">{story.matchInfo}</span>
