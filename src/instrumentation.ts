@@ -1,6 +1,18 @@
 export async function register() {
   // Only run in Node.js server environment (not edge, not client)
   if (process.env.NEXT_RUNTIME === "nodejs") {
+
+    // Pre-warm the story cache so the first page request is instant
+    setTimeout(async () => {
+      try {
+        const { getAllStories } = await import("./app/site/components/utils");
+        await getAllStories();
+        console.log("[Cache] Story cache warmed on startup.");
+      } catch (err) {
+        console.error("[Cache] Warmup failed:", err);
+      }
+    }, 2000);
+
     const cron = await import("node-cron");
 
     // Schedule daily scan at 7:00 AM UTC
