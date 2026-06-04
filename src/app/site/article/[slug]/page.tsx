@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 import TopBar from "../../components/TopBar";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
@@ -15,8 +14,7 @@ import type { Story } from "../../../api/stories/route";
 type StoryExt = Story & { imageEmoji?: string; imageBg?: string; viralScore?: number; matchInfo?: string };
 
 export async function generateStaticParams() {
-  const stories = await getAllStories();
-  return stories.map((s) => ({ slug: s.slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
