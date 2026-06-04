@@ -5,7 +5,7 @@ import pool from "./db";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
-  session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
+  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
   pages: {
     signIn: "/hub/login",
   },
@@ -21,32 +21,40 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = credentials?.password as string | undefined;
         if (!email || !password) return null;
 
-        try {
-          const { rows } = await pool.query(
-            "SELECT * FROM users WHERE email = $1 AND active = true",
-            [email]
-          );
-          const user = rows[0];
-          if (!user) return null;
+        // Retry up to 3 times — DB can be slow on cold container start
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const { rows } = await pool.query(
+              "SELECT * FROM users WHERE email = $1 AND active = true",
+              [email]
+            );
+            const user = rows[0];
+            if (!user) return null; // User not found — no point retrying
 
-          const valid = await bcrypt.compare(password, user.password_hash);
-          if (!valid) return null;
+            const valid = await bcrypt.compare(password, user.password_hash);
+            if (!valid) return null; // Wrong password — no point retrying
 
-          await pool.query(
-            "UPDATE users SET last_login_at = NOW() WHERE id = $1",
-            [user.id]
-          );
+            // Fire-and-forget last login update
+            pool.query(
+              "UPDATE users SET last_login_at = NOW() WHERE id = $1",
+              [user.id]
+            ).catch(() => {});
 
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          };
-        } catch (err) {
-          console.error("Auth DB error:", err);
-          return null;
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+            };
+          } catch (err) {
+            console.error(`Auth DB error (attempt ${attempt}/3):`, err);
+            if (attempt < 3) {
+              // Wait 500ms before retrying
+              await new Promise((r) => setTimeout(r, 500));
+            }
+          }
         }
+        return null;
       },
     }),
   ],
