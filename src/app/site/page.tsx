@@ -100,12 +100,16 @@ function HeroCard({ story }: { story: Story }) {
 // ── Featured grid card ─────────────────────────────────────────────
 
 function FeaturedCard({ story, num }: { story: Story; num: number }) {
-  const s = story as Story & { imageEmoji?: string; imageBg?: string };
+  const s = story as Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string };
   return (
     <Link href={`/site/article/${story.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
       <div className="card" style={{ height: "100%" }}>
-        <div style={{ height: 160, background: s.imageBg || "#1a2a1a", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ fontFamily: "var(--font-archivo)", fontWeight: 900, color: "rgba(255,255,255,0.06)", fontSize: "6rem", lineHeight: 1 }}>0{num}</span>
+        <div style={{ height: 160, background: s.imageBg || "#1a2a1a", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {s.imageUrl ? (
+            <img src={s.imageUrl} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", position: "absolute", inset: 0 }} />
+          ) : (
+            <span style={{ fontFamily: "var(--font-archivo)", fontWeight: 900, color: "rgba(255,255,255,0.06)", fontSize: "6rem", lineHeight: 1 }}>0{num}</span>
+          )}
           <div style={{ position: "absolute", top: 10, left: 10 }}>
             <CategoryBadge category={story.category} />
           </div>
@@ -127,11 +131,15 @@ function FeaturedCard({ story, num }: { story: Story; num: number }) {
 // ── Story row ──────────────────────────────────────────────────────
 
 function StoryRow({ story }: { story: Story }) {
-  const s = story as Story & { imageEmoji?: string; imageBg?: string };
+  const s = story as Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string };
   return (
     <a href={`/site/article/${story.slug}`} className="story-row" style={{ textDecoration: "none" }}>
-      <div className="story-thumb" style={{ background: s.imageBg || "#1a2a1a" }}>
-        {s.imageEmoji || "🏉"}
+      <div className="story-thumb" style={{ background: s.imageBg || "#1a2a1a", overflow: "hidden", padding: 0 }}>
+        {s.imageUrl ? (
+          <img src={s.imageUrl} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        ) : (
+          s.imageEmoji || "🏉"
+        )}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ marginBottom: 6 }}><CategoryBadge category={story.category} /></div>
@@ -183,11 +191,19 @@ function AlsoToday({ stories }: { stories: Story[] }) {
         </span>
       </div>
       <div style={{ padding: "4px 0" }}>
-        {stories.map((story, i) => (
+        {stories.map((story, i) => {
+          const s = story as Story & { imageUrl?: string; imageBg?: string; imageEmoji?: string };
+          return (
           <a key={story.id} href={`/site/article/${story.slug}`} style={{ display: "flex", gap: 12, padding: "10px 14px", textDecoration: "none", borderBottom: i < stories.length - 1 ? "1px solid var(--rule)" : "none" }}>
-            <span className="font-archivo" style={{ fontWeight: 900, fontSize: "1.1rem", color: "var(--green-bright)", minWidth: 24, flexShrink: 0 }}>
-              0{i + 2}
-            </span>
+            {s.imageUrl ? (
+              <div style={{ width: 48, height: 48, flexShrink: 0, borderRadius: "var(--radius)", overflow: "hidden" }}>
+                <img src={s.imageUrl} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </div>
+            ) : (
+              <span className="font-archivo" style={{ fontWeight: 900, fontSize: "1.1rem", color: "var(--accent)", minWidth: 24, flexShrink: 0 }}>
+                0{i + 2}
+              </span>
+            )}
             <div>
               <div style={{ marginBottom: 4 }}><CategoryBadge category={story.category} /></div>
               <p className="font-archivo" style={{ fontWeight: 700, fontSize: "0.82rem", lineHeight: 1.3, color: "var(--ink)" }}>
@@ -195,7 +211,8 @@ function AlsoToday({ stories }: { stories: Story[] }) {
               </p>
             </div>
           </a>
-        ))}
+        );
+        })}
       </div>
     </div>
   );
