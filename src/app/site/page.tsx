@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 import pool from "@/lib/db";
 import TopBar from "./components/TopBar";
 import SiteHeader from "./components/SiteHeader";
@@ -273,13 +273,16 @@ function ScoresSection({ scores }: { scores: Score[] }) {
 // ── Page ───────────────────────────────────────────────────────────
 
 export default async function HomePage() {
-  const [stories, scores] = await Promise.all([getAllStories(), getWeekendScores()]);
+  const [stories, scores, hotTake] = await Promise.all([
+    getAllStories(),
+    getWeekendScores(),
+    getHotTake(),
+  ]);
   const hero      = stories.find((s) => (s as Story & { featured?: boolean }).featured) || stories[0];
   const rest      = stories.filter((s) => s.id !== hero?.id);
   const featured  = rest.slice(0, 3);
   const alsoToday = rest.slice(0, 4);
   const latest    = rest.slice(0, 5);
-  const hotTake   = await getHotTake();
 
   const categories = ["ireland", "shithousery", "hot-takes", "tactical", "underdog", "world-cup"];
   const shithouseryStories = stories.filter((s) => s.category?.toLowerCase() === "shithousery").slice(0, 3);
