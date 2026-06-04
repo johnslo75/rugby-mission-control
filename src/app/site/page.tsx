@@ -1,4 +1,7 @@
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import pool from "@/lib/db";
 import TopBar from "./components/TopBar";
 import SiteHeader from "./components/SiteHeader";
