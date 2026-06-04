@@ -12,9 +12,140 @@ const CATEGORY_COLORS: Record<string, string> = {
   Underdog: "bg-orange-50 text-orange-700 border-orange-200",
 };
 
+const CATEGORIES = ["Ireland", "Shithousery", "Hot Takes", "Tactical", "Results", "World Cup", "Radar", "Underdog"];
+
+function EditModal({ story, onSave, onClose }: {
+  story: Story;
+  onSave: (updated: Story) => void;
+  onClose: () => void;
+}) {
+  const [draft, setDraft] = useState({ ...story });
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    await fetch("/api/stories", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(draft),
+    });
+    onSave(draft);
+    setSaving(false);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="font-bold text-gray-900">Edit Story</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {/* Title */}
+          <div>
+            <label className="field-label">Title</label>
+            <input
+              className="field-input"
+              value={draft.title}
+              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+            />
+          </div>
+
+          {/* Excerpt */}
+          <div>
+            <label className="field-label">Excerpt</label>
+            <textarea
+              className="field-input"
+              rows={2}
+              value={draft.excerpt}
+              onChange={(e) => setDraft({ ...draft, excerpt: e.target.value })}
+            />
+          </div>
+
+          {/* Category + Author row */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="field-label">Category</label>
+              <select
+                className="field-input"
+                value={draft.category}
+                onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+              >
+                {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="field-label">Author</label>
+              <input
+                className="field-input"
+                value={draft.author}
+                onChange={(e) => setDraft({ ...draft, author: e.target.value })}
+              />
+            </div>
+          </div>
+
+          {/* Image URL */}
+          <div>
+            <label className="field-label">Image URL</label>
+            <input
+              className="field-input"
+              value={(draft as Story & { imageUrl?: string }).imageUrl || ""}
+              onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value } as Story & { imageUrl?: string })}
+              placeholder="https://..."
+            />
+            {(draft as Story & { imageUrl?: string }).imageUrl && (
+              <img
+                src={(draft as Story & { imageUrl?: string }).imageUrl}
+                alt="preview"
+                className="mt-2 rounded-lg w-full h-40 object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            )}
+          </div>
+
+          {/* Body */}
+          <div>
+            <label className="field-label">Body (HTML)</label>
+            <textarea
+              className="field-input font-mono text-xs"
+              rows={10}
+              value={draft.body}
+              onChange={(e) => setDraft({ ...draft, body: e.target.value })}
+            />
+          </div>
+
+          {/* Toggles */}
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+              <input type="checkbox" checked={!!draft.published} onChange={(e) => setDraft({ ...draft, published: e.target.checked })} />
+              Published
+            </label>
+            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+              <input type="checkbox" checked={!!draft.featured} onChange={(e) => setDraft({ ...draft, featured: e.target.checked })} />
+              Featured
+            </label>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+          <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
+          <button onClick={save} disabled={saving} className="btn-primary text-sm">
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SitePostsPanel() {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<Story | null>(null);
 
   useEffect(() => {
     fetch("/api/stories?all=1")
@@ -48,6 +179,11 @@ export default function SitePostsPanel() {
     setStories((prev) => prev.map((s) => (s.id === story.id ? updated : s)));
   }
 
+  function handleSave(updated: Story) {
+    setStories((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+    setEditing(null);
+  }
+
   const published = stories.filter((s) => s.published);
   const unpublished = stories.filter((s) => !s.published);
 
@@ -58,7 +194,7 @@ export default function SitePostsPanel() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Published", value: published.length, color: "text-[#00C853]" },
+          { label: "Published", value: published.length, color: "text-[#00a86b]" },
           { label: "Drafts", value: unpublished.length, color: "text-amber-500" },
           { label: "Featured", value: stories.filter((s) => s.featured && s.published).length, color: "text-blue-500" },
         ].map(({ label, value, color }) => (
@@ -77,7 +213,7 @@ export default function SitePostsPanel() {
             href={process.env.NEXT_PUBLIC_SITE_URL || "https://rugbyradar.co"}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-[#00C853] hover:underline"
+            className="text-xs text-[#00a86b] hover:underline"
           >
             View site →
           </a>
@@ -117,8 +253,14 @@ export default function SitePostsPanel() {
                     ⭐
                   </button>
                   <button
+                    onClick={() => setEditing(story)}
+                    className="text-xs px-2.5 py-1.5 rounded border border-blue-200 text-blue-600 hover:bg-blue-50 font-medium transition-colors"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
                     onClick={() => togglePublish(story)}
-                    className={`text-xs px-2.5 py-1.5 rounded border font-medium transition-colors ${story.published ? "bg-white border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-500" : "bg-emerald-50 border-emerald-200 text-[#00C853] hover:bg-emerald-100"}`}
+                    className={`text-xs px-2.5 py-1.5 rounded border font-medium transition-colors ${story.published ? "bg-white border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-500" : "bg-emerald-50 border-emerald-200 text-[#00a86b] hover:bg-emerald-100"}`}
                   >
                     {story.published ? "Unpublish" : "Publish"}
                   </button>
@@ -131,6 +273,15 @@ export default function SitePostsPanel() {
           </div>
         )}
       </div>
+
+      {/* Edit modal */}
+      {editing && (
+        <EditModal
+          story={editing}
+          onSave={handleSave}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </div>
   );
 }
