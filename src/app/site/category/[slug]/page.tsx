@@ -5,7 +5,9 @@ import CategoryBadge from "../../components/CategoryBadge";
 import { getAllStories, readTime, formatDateShort } from "../../components/utils";
 import type { Story } from "../../../api/stories/route";
 
-type StoryExt = Story & { imageEmoji?: string; imageBg?: string };
+export const revalidate = 60;
+
+type StoryExt = Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string };
 
 const SLUG_TO_LABEL: Record<string, string> = {
   ireland: "Ireland",
@@ -14,6 +16,8 @@ const SLUG_TO_LABEL: Record<string, string> = {
   tactical: "Tactical",
   underdog: "Underdog",
   "world-cup": "World Cup",
+  results: "Results",
+  radar: "Radar",
 };
 
 export async function generateStaticParams() {
@@ -36,8 +40,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       <TopBar />
       <SiteHeader />
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 20px 60px" }}>
-        <header style={{ marginBottom: 32, paddingBottom: 16, borderBottom: "3px solid var(--green)" }}>
-          <p className="font-archivo" style={{ fontWeight: 900, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--green)", marginBottom: 8 }}>
+        <header style={{ marginBottom: 32, paddingBottom: 16, borderBottom: "3px solid var(--accent)" }}>
+          <p className="font-archivo" style={{ fontWeight: 900, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--accent)", marginBottom: 8 }}>
             Category
           </p>
           <h1 className="font-archivo" style={{ fontWeight: 900, fontSize: "2.2rem", color: "var(--ink)" }}>{label}</h1>
@@ -56,8 +60,14 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
               {stories.slice(0, 3).map((story) => (
                 <a key={story.id} href={`/site/article/${story.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
                   <div className="card">
-                    <div style={{ height: 160, background: story.imageBg || "#1a2a1a", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                      <span style={{ opacity: 0.15, fontSize: "7rem" }}>{story.imageEmoji || "🏉"}</span>
+                    <div style={{ height: 160, background: story.imageBg || "#1a2a1a", overflow: "hidden", position: "relative" }}>
+                      {story.imageUrl ? (
+                        <img src={story.imageUrl} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <span style={{ opacity: 0.15, fontSize: "7rem" }}>{story.imageEmoji || "🏉"}</span>
+                        </div>
+                      )}
                       <div style={{ position: "absolute", top: 10, left: 10 }}><CategoryBadge category={story.category} /></div>
                     </div>
                     <div style={{ padding: "14px 16px 18px" }}>
@@ -72,8 +82,14 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
             {/* Rest as rows */}
             {stories.slice(3).map((story) => (
-              <a key={story.id} href={`/site/article/${story.slug}`} className="story-row">
-                <div className="story-thumb" style={{ background: story.imageBg || "#1a2a1a" }}>{story.imageEmoji || "🏉"}</div>
+              <a key={story.id} href={`/site/article/${story.slug}`} className="story-row" style={{ textDecoration: "none" }}>
+                <div className="story-thumb" style={{ background: story.imageBg || "#1a2a1a", overflow: "hidden", padding: 0 }}>
+                  {story.imageUrl ? (
+                    <img src={story.imageUrl} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    story.imageEmoji || "🏉"
+                  )}
+                </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ marginBottom: 6 }}><CategoryBadge category={story.category} /></div>
                   <h3 className="font-archivo" style={{ fontWeight: 700, fontSize: "0.9rem", lineHeight: 1.35, color: "var(--ink)", marginBottom: 4 }}>{story.title}</h3>

@@ -5,7 +5,9 @@ import CategoryBadge from "../components/CategoryBadge";
 import { getAllStories, readTime, formatDateShort } from "../components/utils";
 import type { Story } from "../../api/stories/route";
 
-type StoryExt = Story & { imageEmoji?: string; imageBg?: string };
+export const revalidate = 60;
+
+type StoryExt = Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string };
 
 export default async function LatestPage() {
   const stories = (await getAllStories()) as StoryExt[];
@@ -15,8 +17,8 @@ export default async function LatestPage() {
       <TopBar />
       <SiteHeader />
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 20px 60px" }}>
-        <header style={{ marginBottom: 32, paddingBottom: 16, borderBottom: "3px solid var(--green)" }}>
-          <p className="font-archivo" style={{ fontWeight: 900, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--green)", marginBottom: 8 }}>
+        <header style={{ marginBottom: 32, paddingBottom: 16, borderBottom: "3px solid var(--accent)" }}>
+          <p className="font-archivo" style={{ fontWeight: 900, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--accent)", marginBottom: 8 }}>
             All Stories
           </p>
           <h1 className="font-archivo" style={{ fontWeight: 900, fontSize: "2.2rem", color: "var(--ink)" }}>Latest</h1>
@@ -27,8 +29,14 @@ export default async function LatestPage() {
           {stories.map((story) => (
             <a key={story.id} href={`/site/article/${story.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <div className="card" style={{ height: "100%" }}>
-                <div style={{ height: 160, background: story.imageBg || "#1a2a1a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", position: "relative" }}>
-                  <span style={{ opacity: 0.25, fontSize: "7rem" }}>{story.imageEmoji || "🏉"}</span>
+                <div style={{ height: 160, background: story.imageBg || "#1a2a1a", overflow: "hidden", position: "relative" }}>
+                  {story.imageUrl ? (
+                    <img src={story.imageUrl} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ opacity: 0.25, fontSize: "7rem" }}>{story.imageEmoji || "🏉"}</span>
+                    </div>
+                  )}
                   <div style={{ position: "absolute", top: 10, left: 10 }}>
                     <CategoryBadge category={story.category} />
                   </div>
