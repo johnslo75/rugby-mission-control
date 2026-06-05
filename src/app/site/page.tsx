@@ -342,7 +342,6 @@ export default async function HomePage() {
             </div>
             <CompetitionFilter
               stories={rest as (Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string; competitions?: string[] })[]}
-              renderStory={(s) => <StoryRow key={s.id} story={s} />}
             />
           </section>
 

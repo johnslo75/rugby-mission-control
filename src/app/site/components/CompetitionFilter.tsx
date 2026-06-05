@@ -7,13 +7,53 @@ import type { Story } from "../../api/stories/route";
 
 type StoryExt = Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string; competitions?: string[] };
 
+function formatDateShort(iso: string) {
+  return new Date(iso).toLocaleDateString("en-IE", { day: "numeric", month: "short" });
+}
+function readTime(body: string) {
+  const words = body.replace(/<[^>]+>/g, "").split(/\s+/).length;
+  return Math.max(1, Math.ceil(words / 200));
+}
+
+function StoryRow({ story }: { story: StoryExt }) {
+  return (
+    <a href={`/site/article/${story.slug}`} className="story-row" style={{ textDecoration: "none" }}>
+      <div className="story-thumb" style={{ background: story.imageBg || "#1a2a1a", overflow: "hidden", padding: 0 }}>
+        {story.imageUrl ? (
+          <img src={story.imageUrl} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          story.imageEmoji || "🏉"
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ marginBottom: 4 }}>
+          <span style={{
+            display: "inline-block", fontSize: "0.62rem", fontWeight: 800,
+            letterSpacing: "0.1em", textTransform: "uppercase", padding: "2px 8px",
+            borderRadius: "var(--radius)", color: "#fff", background: "#333",
+            fontFamily: "var(--font-archivo)"
+          }}>
+            {story.category}
+          </span>
+        </div>
+        <h3 className="font-archivo" style={{ fontWeight: 700, fontSize: "0.9rem", lineHeight: 1.35, color: "var(--ink)", marginBottom: 4 }}>
+          {story.title}
+        </h3>
+        <p className="font-dm-sans" style={{ fontSize: "0.8rem", color: "var(--mid)", lineHeight: 1.4, marginBottom: 6 }}>
+          {story.excerpt}
+        </p>
+        <div className="meta">{story.author} · {formatDateShort(story.date)} · {readTime(story.body)} min read</div>
+      </div>
+    </a>
+  );
+}
+
 interface Props {
   stories: StoryExt[];
   initialCompetition?: string;
-  renderStory: (story: StoryExt) => React.ReactNode;
 }
 
-export default function CompetitionFilter({ stories, initialCompetition, renderStory }: Props) {
+export default function CompetitionFilter({ stories, initialCompetition }: Props) {
   const [selected, setSelected] = useState<string>(initialCompetition || "all");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showFade, setShowFade] = useState(true);
@@ -36,7 +76,7 @@ export default function CompetitionFilter({ stories, initialCompetition, renderS
   return (
     <>
       {/* Filter chip row */}
-      <div style={{ position: "relative", marginBottom: 32 }}>
+      <div style={{ position: "relative", marginBottom: 24 }}>
         <div
           ref={scrollRef}
           style={{
@@ -44,7 +84,6 @@ export default function CompetitionFilter({ stories, initialCompetition, renderS
             scrollbarWidth: "none", msOverflowStyle: "none",
           }}
         >
-          {/* All chip */}
           <button
             onClick={() => setSelected("all")}
             className="font-archivo"
@@ -84,7 +123,6 @@ export default function CompetitionFilter({ stories, initialCompetition, renderS
           })}
         </div>
 
-        {/* Right fade on mobile */}
         {showFade && (
           <div style={{
             position: "absolute", top: 0, right: 0, width: 48, height: "100%",
@@ -98,7 +136,7 @@ export default function CompetitionFilter({ stories, initialCompetition, renderS
       {selectedComp && (
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginBottom: 24, padding: "10px 14px",
+          marginBottom: 16, padding: "10px 14px",
           borderLeft: `4px solid ${selectedComp.color}`,
           background: "var(--card)", borderRadius: "0 var(--radius) var(--radius) 0",
         }}>
@@ -133,7 +171,7 @@ export default function CompetitionFilter({ stories, initialCompetition, renderS
           </p>
         </div>
       ) : (
-        <>{filtered.map((story) => renderStory(story))}</>
+        filtered.map((story) => <StoryRow key={story.id} story={story} />)
       )}
     </>
   );
