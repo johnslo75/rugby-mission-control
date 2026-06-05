@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 
 export const dynamic = "force-dynamic";
 import pool from "@/lib/db";
@@ -14,15 +15,19 @@ import type { Story } from "../api/stories/route";
 
 interface HotTake { id: string; text: string; source: string; }
 
-async function getHotTake(): Promise<HotTake | null> {
-  try {
-    const { rows } = await pool.query(
-      "SELECT * FROM hottakes ORDER BY CASE WHEN active THEN 0 ELSE 1 END, date DESC LIMIT 1"
-    );
-    if (!rows[0]) return null;
-    return { id: rows[0].id, text: rows[0].text, source: rows[0].source };
-  } catch { return null; }
-}
+const getHotTake = unstable_cache(
+  async (): Promise<HotTake | null> => {
+    try {
+      const { rows } = await pool.query(
+        "SELECT * FROM hottakes ORDER BY CASE WHEN active THEN 0 ELSE 1 END, date DESC LIMIT 1"
+      );
+      if (!rows[0]) return null;
+      return { id: rows[0].id, text: rows[0].text, source: rows[0].source };
+    } catch { return null; }
+  },
+  ["hot-take"],
+  { revalidate: 300 } // 5 minutes
+);
 
 const SIX_NATIONS = new Date("2026-02-07");
 const RWC  = new Date("2027-10-01");
