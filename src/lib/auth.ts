@@ -2,6 +2,17 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import pool from "./db";
+import { Pool } from "pg";
+
+// Dedicated auth pool with a longer timeout — never shares connections
+// with the main pool so a busy homepage can't block logins
+const authPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("rlwy") ? { rejectUnauthorized: false } : false,
+  max: 2,
+  connectionTimeoutMillis: 15000,
+  statement_timeout: 15000,
+});
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
@@ -24,7 +35,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Retry up to 3 times — DB can be slow on cold container start
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
-            const { rows } = await pool.query(
+            const { rows } = await authPool.query(
               "SELECT * FROM users WHERE email = $1 AND active = true",
               [email]
             );
@@ -35,7 +46,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             if (!valid) return null; // Wrong password — no point retrying
 
             // Fire-and-forget last login update
-            pool.query(
+            authPool.query(
               "UPDATE users SET last_login_at = NOW() WHERE id = $1",
               [user.id]
             ).catch(() => {});
