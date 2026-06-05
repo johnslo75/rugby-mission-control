@@ -136,7 +136,10 @@ function MobileAccordion({ onClose }: { onClose: () => void }) {
                     style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}
                     onClick={onClose}
                   >
-                    {comp.emoji} {comp.name}
+                    {comp.logo
+                      ? <img src={comp.logo} alt={comp.name} style={{ width: 20, height: 20, objectFit: "contain", flexShrink: 0 }} />
+                      : <span>{comp.emoji}</span>
+                    } {comp.name}
                   </Link>
                 ))}
               </div>
