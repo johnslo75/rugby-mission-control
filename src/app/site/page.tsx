@@ -7,6 +7,7 @@ import SiteHeader from "./components/SiteHeader";
 import BreakingTicker from "./components/BreakingTicker";
 import CategoryBadge from "./components/CategoryBadge";
 import SiteFooter from "./components/SiteFooter";
+import CompetitionFilter from "./components/CompetitionFilter";
 import { getAllStories, getWeekendScores, readTime, daysUntil, formatDate, formatDateShort } from "./components/utils";
 import type { Score } from "./components/utils";
 import type { Story } from "../api/stories/route";
@@ -332,14 +333,17 @@ export default async function HomePage() {
 
         {/* ── Latest + sidebar ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 290px", gap: 40, alignItems: "start" }}>
-          {/* Stories */}
+          {/* Stories with competition filter */}
           <section>
-            <div className="section-header">
+            <div className="section-header" style={{ marginBottom: 20 }}>
               <span className="section-header-label">Latest Stories</span>
               <div className="section-header-rule" />
               <a href="/site/latest" className="section-header-link">All stories →</a>
             </div>
-            {latest.map((s) => <StoryRow key={s.id} story={s} />)}
+            <CompetitionFilter
+              stories={rest as (Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string; competitions?: string[] })[]}
+              renderStory={(s) => <StoryRow key={s.id} story={s} />}
+            />
           </section>
 
           {/* Sidebar */}

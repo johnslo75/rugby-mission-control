@@ -1,29 +1,151 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { COMPETITIONS_BY_REGION, REGION_LABELS } from "@/lib/competitions";
+import type { Region } from "@/lib/competitions";
+
+const REGION_ORDER: Region[] = ["northern", "southern", "global", "tier2"];
 
 const NAV = [
-  { label: "Home", href: "/site" },
-  { label: "Latest", href: "/site/latest" },
-  { label: "Ireland 🇮🇪", href: "/site/category/ireland" },
-  { label: "Shithousery 💩", href: "/site/category/shithousery" },
-  { label: "Hot Takes 🔥", href: "/site/category/hot-takes", hot: true },
-  { label: "Tactical", href: "/site/category/tactical" },
-  { label: "Results 🏆", href: "/site/category/results" },
-  { label: "World Cup 2027", href: "/site/category/world-cup", pill: true },
-  { label: "Radar", href: "/site/radar" },
+  { label: "News", href: "/site/latest" },
+  { label: "Fixtures", href: "/site/fixtures" },
+  { label: "Match Previews", href: "/site/category/match-previews" },
+  { label: "Analysis", href: "/site/category/tactical" },
+  { label: "Matchday with Maeve", href: "/site/matchday-with-maeve" },
+  { label: "Travel Guides", href: "/site/travel-guides" },
 ];
 
-function RadarIcon() {
+function CompetitionsDropdown() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-      <circle cx="14" cy="14" r="3" fill="#e8ff3a" />
-      <circle cx="14" cy="14" r="7" stroke="#e8ff3a" strokeWidth="1.5" strokeOpacity="0.6" fill="none" />
-      <circle cx="14" cy="14" r="11" stroke="#e8ff3a" strokeWidth="1.2" strokeOpacity="0.3" fill="none" />
-      <line x1="14" y1="14" x2="14" y2="3" stroke="#e8ff3a" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.8" />
-    </svg>
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="nav-link"
+        style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+      >
+        Competitions
+        <span style={{ fontSize: "0.6rem", opacity: 0.7, marginTop: 1 }}>{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 8px)", left: 0,
+          background: "#fff", border: "1px solid var(--rule)",
+          borderRadius: "var(--radius)", boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+          zIndex: 200, minWidth: 260, padding: "8px 0",
+        }}>
+          {REGION_ORDER.map((region) => {
+            const comps = COMPETITIONS_BY_REGION[region];
+            if (!comps.length) return null;
+            return (
+              <div key={region}>
+                <div style={{
+                  padding: "6px 16px 4px",
+                  fontSize: "0.6rem", fontFamily: "var(--font-archivo)", fontWeight: 900,
+                  letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)",
+                }}>
+                  {REGION_LABELS[region]}
+                </div>
+                {comps.map((comp) => (
+                  <Link
+                    key={comp.slug}
+                    href={`/site/competitions/${comp.slug}`}
+                    onClick={() => setOpen(false)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      padding: "7px 16px", textDecoration: "none",
+                      color: "var(--ink-3)", fontSize: "0.82rem",
+                      fontFamily: "var(--font-dm-sans)",
+                      transition: "background 0.12s",
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = "#f8f8f8"; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <span style={{ fontSize: "1rem", width: 20, textAlign: "center" }}>{comp.emoji}</span>
+                    <span style={{ flex: 1 }}>{comp.name}</span>
+                    <span style={{
+                      fontSize: "0.6rem", fontFamily: "var(--font-archivo)", fontWeight: 900,
+                      color: "#fff", background: comp.color,
+                      padding: "1px 6px", borderRadius: "var(--radius)",
+                    }}>{comp.shortName}</span>
+                  </Link>
+                ))}
+                {region !== "tier2" && <div style={{ height: 1, background: "var(--rule)", margin: "6px 0" }} />}
+              </div>
+            );
+          })}
+          <div style={{ height: 1, background: "var(--rule)", margin: "6px 0" }} />
+          <Link
+            href="/site/competitions"
+            onClick={() => setOpen(false)}
+            style={{
+              display: "block", padding: "8px 16px", textDecoration: "none",
+              fontSize: "0.78rem", fontFamily: "var(--font-archivo)", fontWeight: 700,
+              color: "var(--accent)", textAlign: "center",
+            }}
+          >
+            View all competitions →
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MobileAccordion({ onClose }: { onClose: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="nav-link"
+        style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, width: "100%", marginBottom: 4 }}
+      >
+        Competitions <span style={{ fontSize: "0.6rem", opacity: 0.7 }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div style={{ paddingLeft: 12, paddingBottom: 8 }}>
+          {REGION_ORDER.map((region) => {
+            const comps = COMPETITIONS_BY_REGION[region];
+            if (!comps.length) return null;
+            return (
+              <div key={region} style={{ marginBottom: 8 }}>
+                <p style={{ fontSize: "0.6rem", fontFamily: "var(--font-archivo)", fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 4, padding: "0 10px" }}>
+                  {REGION_LABELS[region]}
+                </p>
+                {comps.map((comp) => (
+                  <Link
+                    key={comp.slug}
+                    href={`/site/competitions/${comp.slug}`}
+                    className="nav-link"
+                    style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}
+                    onClick={onClose}
+                  >
+                    {comp.emoji} {comp.name}
+                  </Link>
+                ))}
+              </div>
+            );
+          })}
+          <Link href="/site/competitions" className="nav-link" style={{ display: "block", marginTop: 4 }} onClick={onClose}>
+            → All Competitions
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -52,7 +174,7 @@ export default function SiteHeader() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: 4 }}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
             className="mobile-menu-btn"
             aria-label="Menu"
           >
@@ -62,17 +184,14 @@ export default function SiteHeader() {
           </button>
         </div>
 
-        {/* Nav row */}
-        <nav style={{ display: "flex", gap: 2, paddingBottom: 10, flexWrap: "wrap" }}>
+        {/* Desktop Nav row */}
+        <nav style={{ display: "flex", gap: 2, paddingBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
           {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-link${item.hot ? " hot" : ""}${item.pill ? " pill" : ""}`}
-            >
+            <Link key={item.href} href={item.href} className="nav-link">
               {item.label}
             </Link>
           ))}
+          <CompetitionsDropdown />
         </nav>
       </div>
 
@@ -83,13 +202,14 @@ export default function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className={`nav-link${item.hot ? " hot" : ""}${item.pill ? " pill" : ""}`}
+              className="nav-link"
               style={{ display: "block", marginBottom: 4 }}
               onClick={() => setMenuOpen(false)}
             >
               {item.label}
             </Link>
           ))}
+          <MobileAccordion onClose={() => setMenuOpen(false)} />
         </div>
       )}
     </header>

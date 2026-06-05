@@ -30,6 +30,10 @@ export interface Story {
   matchInfo?: string;
   published: boolean;
   tags?: string[];
+  // Competition taxonomy — array of competition slugs (e.g. ["six-nations", "urc"])
+  competitions?: string[];
+  // Priority flag — true for Irish rugby stories (mirrors Intelligence Engine isIrish flag)
+  isPriority?: boolean;
 }
 
 function rowToStory(r: Record<string, unknown>): Story {
@@ -51,6 +55,8 @@ function rowToStory(r: Record<string, unknown>): Story {
     matchInfo: (r.match_info as string) || undefined,
     published: r.published as boolean,
     tags: (r.tags as string[]) || [],
+    competitions: (r.competitions as string[]) || [],
+    isPriority: (r.is_priority as boolean) || false,
   };
 }
 
@@ -112,13 +118,15 @@ export async function PUT(req: NextRequest) {
       UPDATE stories SET
         title=$2, excerpt=$3, body=$4, category=$5, author=$6, date=$7,
         image_url=$8, video_url=$9, image_emoji=$10, image_bg=$11,
-        featured=$12, viral_score=$13, match_info=$14, published=$15, tags=$16
+        featured=$12, viral_score=$13, match_info=$14, published=$15, tags=$16,
+        competitions=$17, is_priority=$18
       WHERE id=$1
     `, [
       body.id, body.title, body.excerpt, body.body, body.category, body.author, body.date,
       body.imageUrl || '', body.videoUrl || '', body.imageEmoji || '🏉', body.imageBg || '#1a2a1a',
       body.featured || false, body.viralScore || null, body.matchInfo || null,
-      body.published || false, body.tags || []
+      body.published || false, body.tags || [],
+      body.competitions || [], body.isPriority || false,
     ]));
     invalidate("all-stories");
     return NextResponse.json(body);
