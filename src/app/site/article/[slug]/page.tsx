@@ -61,7 +61,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       <SiteHeader />
 
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 20px 0" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 290px", gap: 48, alignItems: "start" }}>
+        <div className="article-layout">
 
           {/* Article */}
           <article>
@@ -147,7 +147,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   <span className="section-header-label">More in {story.category}</span>
                   <div className="section-header-rule" />
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                <div className="related-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
                   {related.map((s) => <RelatedCard key={s.id} story={s} />)}
                 </div>
               </div>
@@ -155,7 +155,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </article>
 
           {/* Sidebar */}
-          <aside style={{ position: "sticky", top: 100 }}>
+          <aside className="article-sidebar" style={{ position: "sticky", top: 100 }}>
             <div style={{ background: "var(--ink)", color: "#fff", borderRadius: "var(--radius)", padding: 20, marginBottom: 20 }}>
               <p className="font-archivo" style={{ fontWeight: 900, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--green-bright)", marginBottom: 16 }}>
                 Follow Rugby Radar

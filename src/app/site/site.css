@@ -393,3 +393,24 @@
   text-decoration: none;
 }
 .page-btn:hover, .page-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+
+/* ─── Article layout — mobile ────────────────────────── */
+.article-layout {
+  display: grid;
+  grid-template-columns: 1fr 290px;
+  gap: 48px;
+  align-items: start;
+}
+.article-sidebar { display: block; }
+
+@media (max-width: 768px) {
+  .article-layout {
+    grid-template-columns: 1fr;
+  }
+  .article-sidebar {
+    display: none;
+  }
+  .related-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
