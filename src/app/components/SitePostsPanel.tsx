@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { Story } from "../api/stories/route";
+import { COMPETITIONS, COMPETITIONS_BY_REGION, REGION_LABELS } from "@/lib/competitions";
+import type { Region } from "@/lib/competitions";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Ireland: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -12,7 +14,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Underdog: "bg-orange-50 text-orange-700 border-orange-200",
 };
 
-const CATEGORIES = ["Ireland", "Shithousery", "Hot Takes", "Tactical", "Results", "World Cup", "Radar", "Underdog"];
+const REGION_ORDER: Region[] = ["northern", "southern", "global", "tier2"];
 
 const BLANK_STORY: Story = {
   id: "",
@@ -20,7 +22,7 @@ const BLANK_STORY: Story = {
   title: "",
   excerpt: "",
   body: "",
-  category: "Ireland",
+  category: "Six Nations",
   author: "Rugby Radar",
   date: new Date().toISOString().slice(0, 10),
   imageUrl: "",
@@ -131,7 +133,13 @@ function EditModal({ story, onSave, onClose, isNew }: {
                 value={draft.category}
                 onChange={(e) => setDraft({ ...draft, category: e.target.value })}
               >
-                {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                {REGION_ORDER.map((region) => (
+                  <optgroup key={region} label={REGION_LABELS[region]}>
+                    {COMPETITIONS_BY_REGION[region].map((comp) => (
+                      <option key={comp.slug} value={comp.name}>{comp.emoji} {comp.name}</option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
             <div>

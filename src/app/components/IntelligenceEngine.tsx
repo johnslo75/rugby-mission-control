@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import type { ScanResult, ProcessedStory, ContentIdea } from "../api/scan/route";
 import { findTeamLogosInText } from "../site/components/teamLogos";
+import { COMPETITIONS, COMPETITIONS_BY_REGION, REGION_LABELS } from "@/lib/competitions";
+import type { Region } from "@/lib/competitions";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -24,18 +26,7 @@ async function copyToClipboard(text: string) {
   await navigator.clipboard.writeText(text);
 }
 
-// ─── Site categories ──────────────────────────────────────────────────────────
-
-const SITE_CATEGORIES = [
-  { label: "🇮🇪 Ireland", value: "Ireland" },
-  { label: "💩 Shithousery", value: "Shithousery" },
-  { label: "🔥 Hot Takes", value: "Hot Takes" },
-  { label: "📐 Tactical", value: "Tactical" },
-  { label: "🏆 Results", value: "Results" },
-  { label: "🌍 World Cup 2027", value: "World Cup" },
-  { label: "📡 Radar", value: "Radar" },
-  { label: "🐶 Underdog", value: "Underdog" },
-];
+const REGION_ORDER: Region[] = ["northern", "southern", "global", "tier2"];
 
 function PublishDropdown({ idea, story, onPublish, publishing, ideaKey }: {
   idea: ContentIdea;
@@ -60,17 +51,27 @@ function PublishDropdown({ idea, story, onPublish, publishing, ideaKey }: {
         <div style={{
           position: "absolute", bottom: "100%", left: 0, marginBottom: 4,
           background: "#fff", border: "1px solid #e2e2e2", borderRadius: 6,
-          boxShadow: "0 4px 16px rgba(0,0,0,0.12)", zIndex: 50, minWidth: 180,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.12)", zIndex: 50, minWidth: 220,
+          maxHeight: 360, overflowY: "auto",
         }}>
-          {SITE_CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => { setOpen(false); onPublish(idea, story, cat.value); }}
-              className="w-full text-left text-xs px-3 py-2 hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors"
-              style={{ display: "block", borderBottom: "1px solid #f0f0f0" }}
-            >
-              {cat.label}
-            </button>
+          {REGION_ORDER.map((region) => (
+            <div key={region}>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 pt-2 pb-1">
+                {REGION_LABELS[region]}
+              </div>
+              {COMPETITIONS_BY_REGION[region].map((comp) => (
+                <button
+                  key={comp.slug}
+                  onClick={() => { setOpen(false); onPublish(idea, story, comp.name); }}
+                  className="w-full text-left text-xs px-3 py-2 hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors"
+                  style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: "1px solid #f0f0f0" }}
+                >
+                  <span>{comp.emoji}</span>
+                  <span>{comp.name}</span>
+                  <span className="ml-auto text-[10px] text-gray-400">{comp.shortName}</span>
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       )}
