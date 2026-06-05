@@ -34,8 +34,8 @@ export const TEAM_LOGOS: Record<string, string> = {
   // ── Gallagher Premiership ────────────────────────────────────────────────────
   "Bath Rugby":         WP("Bath_Rugby_2021.svg"),
   "Bath":               WP("Bath_Rugby_2021.svg"),
-  "Bristol Bears":      WP("Bristol_Rugby_logo.svg"),
-  "Bristol":            WP("Bristol_Rugby_logo.svg"),
+  "Bristol Bears":      WP("Bristol_Bears_logo.svg"),
+  "Bristol":            WP("Bristol_Bears_logo.svg"),
   "Exeter Chiefs":      WP("Exeter_Chiefs_Logo_2019.svg"),
   "Exeter":             WP("Exeter_Chiefs_Logo_2019.svg"),
   "Gloucester Rugby":   WP("Gloucester_Rugby_logo.svg"),
@@ -46,11 +46,11 @@ export const TEAM_LOGOS: Record<string, string> = {
   "Newcastle Falcons":  WP("Newcastle_Falcons_logo.svg"),
   "Newcastle Red Bulls":WP("Newcastle_Falcons_logo.svg"),
   "Newcastle":          WP("Newcastle_Falcons_logo.svg"),
-  "Northampton Saints": WP("Northampton_Saints_logo.svg"),
-  "Northampton":        WP("Northampton_Saints_logo.svg"),
+  "Northampton Saints": WP("Northampton_Saints_Logo.svg"),
+  "Northampton":        WP("Northampton_Saints_Logo.svg"),
   "Sale Sharks":        WP("Sale_Sharks_logo.svg"),
   "Sale":               WP("Sale_Sharks_logo.svg"),
-  "Saracens":           WP("Saracens_F.C._logo.svg"),
+  "Saracens":           WP("Saracens_F.C._Logo.svg"),
 
   // ── Top 14 ───────────────────────────────────────────────────────────────────
   "Stade Toulousain":           WP("Stade_Toulousain_logo.svg"),
