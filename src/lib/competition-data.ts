@@ -98,13 +98,14 @@ async function fetchFixtures(eventId: string): Promise<Fixture[]> {
     const data = await res.json() as { content?: unknown[] };
     const matches = (data.content || []) as Record<string, unknown>[];
 
-    // The API doesn't reliably filter by eventId alone, so filter by event label
-    const config = Object.values(COMPETITION_CONFIG).find((c) => c.worldRugbyEventId === eventId);
-
     return matches
       .filter((m) => {
         const teams = m.teams as { name: string }[] | undefined;
-        return teams && teams.length === 2;
+        if (!teams || teams.length < 2) return false;
+        // Filter strictly by event ID to avoid mixing competitions
+        const events = m.events as { id?: string; altId?: string }[] | undefined;
+        const matchEventId = events?.[0]?.id || events?.[0]?.altId;
+        return matchEventId === eventId;
       })
       .map((m) => {
         const teams = m.teams as { name: string; score?: number }[];
