@@ -73,7 +73,10 @@ function CompetitionsDropdown() {
                     onMouseOver={(e) => { e.currentTarget.style.background = "#f8f8f8"; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; }}
                   >
-                    <span style={{ fontSize: "1rem", width: 20, textAlign: "center" }}>{comp.emoji}</span>
+                    {comp.logo
+                      ? <img src={comp.logo} alt={comp.name} style={{ width: 24, height: 24, objectFit: "contain", flexShrink: 0 }} />
+                      : <span style={{ fontSize: "1rem", width: 24, textAlign: "center" }}>{comp.emoji}</span>
+                    }
                     <span style={{ flex: 1 }}>{comp.name}</span>
                     <span style={{
                       fontSize: "0.6rem", fontFamily: "var(--font-archivo)", fontWeight: 900,

@@ -48,7 +48,10 @@ export default function CompetitionsPage() {
                     <div className="card" style={{ height: "100%", borderTop: `3px solid ${comp.color}` }}>
                       <div style={{ padding: "20px 20px 22px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                          <span style={{ fontSize: "2rem" }}>{comp.emoji}</span>
+                          {comp.logo
+                            ? <img src={comp.logo} alt={comp.name} style={{ width: 44, height: 44, objectFit: "contain" }} />
+                            : <span style={{ fontSize: "2rem" }}>{comp.emoji}</span>
+                          }
                           <div>
                             <span className="font-archivo" style={{
                               background: comp.color, color: "#fff", fontWeight: 900,
