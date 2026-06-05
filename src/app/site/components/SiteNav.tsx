@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const NAV_LINKS = [
-  { label: "Latest", href: "/site" },
+  { label: "Home", href: "/site" },
   { label: "Ireland", href: "/site/category/ireland" },
   { label: "World Cup", href: "/site/category/world-cup" },
   { label: "Shithousery", href: "/site/category/shithousery" },

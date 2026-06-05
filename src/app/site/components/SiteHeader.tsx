@@ -13,8 +13,6 @@ const NAV = [
   { label: "Fixtures", href: "/site/fixtures" },
   { label: "Match Previews", href: "/site/category/match-previews" },
   { label: "Analysis", href: "/site/category/tactical" },
-  { label: "Matchday with Maeve", href: "/site/matchday-with-maeve" },
-  { label: "Travel Guides", href: "/site/travel-guides" },
 ];
 
 function CompetitionsDropdown() {
