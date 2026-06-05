@@ -94,13 +94,13 @@ export async function POST(req: NextRequest) {
     const slug = body.slug ? body.slug : slugify(body.title);
     await withTimeout(pool.query(`
       INSERT INTO stories (id, slug, title, excerpt, body, category, author, date,
-        image_url, video_url, image_emoji, image_bg, featured, viral_score, match_info, published, tags)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+        image_url, video_url, image_emoji, image_bg, featured, viral_score, match_info, published, tags, competitions, is_priority)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
     `, [
       id, slug, body.title, body.excerpt, body.body, body.category, body.author, body.date,
       body.imageUrl || '', body.videoUrl || '', body.imageEmoji || '🏉', body.imageBg || '#1a2a1a',
       body.featured || false, body.viralScore || null, body.matchInfo || null,
-      true, body.tags || []
+      true, body.tags || [], body.competitions || [], body.isPriority || false,
     ]));
     const { rows } = await pool.query("SELECT * FROM stories WHERE id=$1", [id]);
     invalidate("all-stories");

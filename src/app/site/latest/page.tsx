@@ -5,7 +5,7 @@ import CategoryBadge from "../components/CategoryBadge";
 import { getAllStories, readTime, formatDateShort } from "../components/utils";
 import type { Story } from "../../api/stories/route";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type StoryExt = Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string };
 

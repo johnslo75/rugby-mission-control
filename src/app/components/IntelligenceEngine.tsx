@@ -535,6 +535,7 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
     setPublishing(key);
     try {
       const body = `<p>${story.shithousery_angle}</p>\n\n<p>${idea.script.replace(/\[.*?\]/g, "").trim()}</p>\n\n<p><em>Hook: ${idea.hook}</em></p>`;
+      const comp = COMPETITIONS.find((c) => c.name === category);
       await fetch("/api/stories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -543,6 +544,7 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
           excerpt: idea.hook,
           body,
           category,
+          competitions: comp ? [comp.slug] : [],
           author: "Rugby Radar",
           date: new Date().toISOString().slice(0, 10),
           imageUrl: story.imageUrl || "",
@@ -550,7 +552,7 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
           published: true,
         }),
       });
-      alert(`✅ Published to rugbyradar.co/${category.toLowerCase().replace(" ", "-")}!`);
+      alert(`✅ Published to rugbyradar.co/${category.toLowerCase().replace(/ /g, "-")}!`);
     } catch {
       alert("Failed to publish. Please try again.");
     } finally {
