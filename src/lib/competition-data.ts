@@ -165,34 +165,28 @@ async function scrapeStandings(wikiUrl: string): Promise<StandingRow[]> {
       if (!hasPts || !hasPld) return;
 
       $(table).find("tr").each((_rowIdx, row) => {
-        const cells = $(row).find("td");
+        // Use td + th[scope=row] to capture team name in <th> cells
+        const cells = $(row).find("td, th[scope='row']");
         if (cells.length < 6) return;
 
         const getNum = (i: number) => parseInt($(cells[i]).text().trim().replace(/[^\d+\-]/g, ""), 10) || 0;
 
-        // Find team name cell — try index 2 first (flag image in index 1), then index 1
-        let teamName = $(cells[2]).find("a").first().text().trim();
-        let offset = 1; // offset accounts for flag cell before team name
-        if (!teamName || /^\d+$/.test(teamName)) {
-          teamName = $(cells[1]).find("a").first().text().trim() || $(cells[1]).text().trim();
-          offset = 0;
-        }
-        if (!teamName || teamName.length < 2) return;
-
-        const t = (i: number) => getNum(offset + i);
+        // Team name is always at index 1 as <th scope="row">
+        const teamName = $(cells[1]).find("a").first().text().trim() || $(cells[1]).text().trim();
+        if (!teamName || teamName.length < 2 || /^\d+$/.test(teamName)) return;
 
         rows.push({
           position: getNum(0) || rows.length + 1,
           team: teamName,
-          played: t(2),
-          won: t(3),
-          drawn: t(4),
-          lost: t(5),
-          pf: t(6),
-          pa: t(7),
-          pd: t(8),
-          bp: t(12),
-          pts: t(13) || getNum(cells.length - 1),
+          played: getNum(2),
+          won: getNum(3),
+          drawn: getNum(4),
+          lost: getNum(5),
+          pf: getNum(6),
+          pa: getNum(7),
+          pd: getNum(8),
+          bp: getNum(11) + getNum(12), // try bonus + losing bonus
+          pts: getNum(13) || getNum(cells.length - 2),
         });
       });
     });
@@ -214,7 +208,7 @@ const getCachedFixtures = unstable_cache(
 
 const getCachedStandings = unstable_cache(
   scrapeStandings,
-  ["wiki-standings-v2"],
+  ["wiki-standings-v3"],
   { revalidate: 10800 }
 );
 
