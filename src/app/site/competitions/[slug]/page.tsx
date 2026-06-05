@@ -134,7 +134,7 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
           )}
         </section>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 40, alignItems: "start" }}>
+        <div className="comp-layout">
           <div>
             {/* ── Fixtures ── */}
             {comp.hasFixtures && (
@@ -246,7 +246,7 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
           </div>
 
           {/* ── Evergreen Explainers sidebar ── */}
-          <aside>
+          <aside className="comp-sidebar">
             <div className="widget">
               <div className="widget-header" style={{ background: comp.color }}>
                 📚 Understand the {comp.shortName}

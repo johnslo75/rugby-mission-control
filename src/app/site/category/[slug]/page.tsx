@@ -56,7 +56,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         ) : (
           <>
             {/* Top 3 large */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 32 }}>
+            <div className="cat-3col">
               {stories.slice(0, 3).map((story) => (
                 <a key={story.id} href={`/site/article/${story.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
                   <div className="card">

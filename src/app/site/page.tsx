@@ -306,7 +306,7 @@ export default async function HomePage() {
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 20px 0" }}>
 
         {/* ── Hero + right column ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, marginBottom: 40, alignItems: "start" }}>
+        <div className="home-main-grid">
           <div>{hero && <HeroCard story={hero} />}</div>
           <div>
             <CountdownCard />
@@ -322,7 +322,7 @@ export default async function HomePage() {
               <div className="section-header-rule" />
               <a href="/site/latest" className="section-header-link">See all →</a>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+            <div className="home-3col">
               {featured.map((s, i) => <FeaturedCard key={s.id} story={s} num={i + 2} />)}
             </div>
           </section>
@@ -332,7 +332,7 @@ export default async function HomePage() {
         <ScoresSection scores={scores} />
 
         {/* ── Latest + sidebar ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 290px", gap: 40, alignItems: "start" }}>
+        <div className="home-side-grid">
           {/* Stories with competition filter */}
           <section>
             <div className="section-header" style={{ marginBottom: 20 }}>
@@ -346,7 +346,7 @@ export default async function HomePage() {
           </section>
 
           {/* Sidebar */}
-          <aside>
+          <aside className="home-sidebar">
             {/* Hot Take */}
             {hotTake && (
               <div className="widget" style={{ marginBottom: 20 }}>
@@ -408,7 +408,7 @@ export default async function HomePage() {
             <p className="font-archivo-narrow" style={{ fontSize: "0.85rem", color: "var(--mid)", marginBottom: 20, fontStyle: "italic" }}>
               The cynical art of winning rugby. Professional fouls, referee management, dark arts, and controversy.
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+            <div className="home-3col">
               {shithouseryStories.map((s, i) => <FeaturedCard key={s.id} story={s} num={i + 1} />)}
             </div>
           </section>

@@ -184,7 +184,7 @@ export default function SiteHeader() {
         </div>
 
         {/* Desktop Nav row */}
-        <nav style={{ display: "flex", gap: 2, paddingBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <nav className="site-header-nav" style={{ gap: 2, paddingBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
           {NAV.map((item) => (
             <Link key={item.href} href={item.href} className="nav-link">
               {item.label}

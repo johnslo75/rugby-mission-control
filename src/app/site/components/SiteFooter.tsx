@@ -18,7 +18,7 @@ export default function SiteFooter() {
   return (
     <footer className="site-footer">
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: "48px 20px 0" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 40, marginBottom: 40 }}>
+        <div className="footer-grid">
           {/* Brand */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
