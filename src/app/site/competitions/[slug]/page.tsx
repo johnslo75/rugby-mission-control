@@ -8,7 +8,8 @@ import CategoryBadge from "../../components/CategoryBadge";
 import { getAllStories, readTime, formatDateShort } from "../../components/utils";
 import { COMPETITIONS, COMPETITION_MAP } from "@/lib/competitions";
 import type { Story } from "../../../api/stories/route";
-import type { Fixture, StandingRow } from "../../../api/competition-data/route";
+import { getCompetitionData } from "@/lib/competition-data";
+import type { Fixture, StandingRow } from "@/lib/competition-data";
 
 export const dynamic = "force-dynamic";
 
@@ -42,18 +43,14 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
   const comp = COMPETITION_MAP[slug];
   if (!comp) notFound();
 
-  const [allStories, compData] = await Promise.all([
+  const [allStories, { fixtures, standings }] = await Promise.all([
     getAllStories() as Promise<StoryExt[]>,
-    fetch(`${process.env.NEXTAUTH_URL || "https://hub.rugbyradar.co"}/api/competition-data?slug=${slug}`, {
-      next: { revalidate: 10800 },
-    }).then((r) => r.json()).catch(() => ({ fixtures: [], standings: [] })) as Promise<{ fixtures: Fixture[]; standings: StandingRow[] }>,
+    getCompetitionData(slug),
   ]);
 
   const stories = allStories
     .filter((s) => (s.competitions || []).includes(slug) || s.category === comp.name)
     .slice(0, 6);
-
-  const { fixtures, standings } = compData;
 
   return (
     <>
