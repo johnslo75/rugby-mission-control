@@ -8,6 +8,7 @@ import CategoryBadge from "../../components/CategoryBadge";
 import { getAllStories, readTime, formatDateShort } from "../../components/utils";
 import { COMPETITIONS, COMPETITION_MAP } from "@/lib/competitions";
 import type { Story } from "../../../api/stories/route";
+import type { Fixture, StandingRow } from "../../../api/competition-data/route";
 
 export const dynamic = "force-dynamic";
 
@@ -41,10 +42,18 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
   const comp = COMPETITION_MAP[slug];
   if (!comp) notFound();
 
-  const allStories = (await getAllStories()) as StoryExt[];
+  const [allStories, compData] = await Promise.all([
+    getAllStories() as Promise<StoryExt[]>,
+    fetch(`${process.env.NEXTAUTH_URL || "https://hub.rugbyradar.co"}/api/competition-data?slug=${slug}`, {
+      next: { revalidate: 10800 },
+    }).then((r) => r.json()).catch(() => ({ fixtures: [], standings: [] })) as Promise<{ fixtures: Fixture[]; standings: StandingRow[] }>,
+  ]);
+
   const stories = allStories
     .filter((s) => (s.competitions || []).includes(slug) || s.category === comp.name)
     .slice(0, 6);
+
+  const { fixtures, standings } = compData;
 
   return (
     <>
@@ -133,19 +142,43 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
             {comp.hasFixtures && (
               <section style={{ marginBottom: 48 }}>
                 <div className="section-header">
-                  <span className="section-header-label">Fixtures</span>
+                  <span className="section-header-label">Fixtures & Results</span>
                   <div className="section-header-rule" />
                 </div>
-                {/* TODO: Wire up World Rugby API for fixtures data */}
-                <div style={{ background: "var(--card)", border: "1px dashed var(--rule)", borderRadius: "var(--radius)", padding: "32px 24px", textAlign: "center" }}>
-                  <p style={{ fontSize: "2rem", marginBottom: 10 }}>📅</p>
-                  <p className="font-archivo" style={{ fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>
-                    Fixtures coming soon
-                  </p>
-                  <p className="font-archivo-narrow" style={{ fontSize: "0.875rem", color: "var(--mid)" }}>
-                    We&apos;ll have full fixture lists and previews as the season approaches.
-                  </p>
-                </div>
+                {fixtures.length === 0 ? (
+                  <div style={{ background: "var(--card)", border: "1px dashed var(--rule)", borderRadius: "var(--radius)", padding: "32px 24px", textAlign: "center" }}>
+                    <p style={{ fontSize: "2rem", marginBottom: 10 }}>📅</p>
+                    <p className="font-archivo" style={{ fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>No fixtures available yet</p>
+                  </div>
+                ) : (
+                  <div style={{ background: "var(--card)", borderRadius: "var(--radius)", overflow: "hidden", border: "1px solid var(--rule)" }}>
+                    {fixtures.map((f, i) => (
+                      <div key={f.id} style={{
+                        display: "grid", gridTemplateColumns: "1fr auto 1fr",
+                        alignItems: "center", gap: 12, padding: "12px 16px",
+                        borderBottom: i < fixtures.length - 1 ? "1px solid var(--rule)" : "none",
+                        background: f.status === "live" ? "#f0fdf4" : undefined,
+                      }}>
+                        <div className="font-archivo" style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--ink)", textAlign: "right" }}>{f.homeTeam}</div>
+                        <div style={{ textAlign: "center", minWidth: 90 }}>
+                          {f.status === "completed" ? (
+                            <span className="font-archivo" style={{ fontWeight: 900, fontSize: "1rem", color: "var(--ink)" }}>
+                              {f.homeScore} – {f.awayScore}
+                            </span>
+                          ) : f.status === "live" ? (
+                            <span style={{ background: "#00a86b", color: "#fff", fontWeight: 700, fontSize: "0.65rem", padding: "2px 7px", borderRadius: 4 }}>LIVE</span>
+                          ) : (
+                            <span className="font-archivo-narrow" style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                              {new Date(f.date).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
+                            </span>
+                          )}
+                          {f.venue && <div style={{ fontSize: "0.65rem", color: "var(--muted)", marginTop: 2 }}>{f.venue}</div>}
+                        </div>
+                        <div className="font-archivo" style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--ink)" }}>{f.awayTeam}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             )}
 
@@ -156,27 +189,43 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
                   <span className="section-header-label">Standings</span>
                   <div className="section-header-rule" />
                 </div>
-                {/* TODO: Wire up World Rugby API for standings data */}
-                <div style={{ background: "var(--card)", borderRadius: "var(--radius)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
-                      <thead>
-                        <tr style={{ background: "var(--ink-2)", color: "#fff" }}>
-                          {["Pos", "Team", "P", "W", "D", "L", "PF", "PA", "PD", "BP", "Pts"].map((h) => (
-                            <th key={h} className="font-archivo" style={{ fontWeight: 700, padding: "8px 10px", textAlign: h === "Team" ? "left" : "center", whiteSpace: "nowrap" }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td colSpan={11} style={{ padding: "24px", textAlign: "center", color: "var(--muted)" }} className="font-archivo-narrow">
-                            Standings will be updated as the season progresses.
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                {standings.length === 0 ? (
+                  <div style={{ background: "var(--card)", border: "1px dashed var(--rule)", borderRadius: "var(--radius)", padding: "24px", textAlign: "center", color: "var(--muted)" }}>
+                    <p className="font-archivo-narrow">Standings updating...</p>
                   </div>
-                </div>
+                ) : (
+                  <div style={{ background: "var(--card)", borderRadius: "var(--radius)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
+                        <thead>
+                          <tr style={{ background: "var(--ink-2)", color: "#fff" }}>
+                            {["Pos", "Team", "P", "W", "D", "L", "PF", "PA", "PD", "BP", "Pts"].map((h) => (
+                              <th key={h} className="font-archivo" style={{ fontWeight: 700, padding: "8px 10px", textAlign: h === "Team" ? "left" : "center", whiteSpace: "nowrap" }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {standings.map((row, i) => (
+                            <tr key={i} style={{ borderBottom: "1px solid var(--rule)", background: i % 2 === 0 ? undefined : "rgba(0,0,0,0.02)" }}>
+                              <td className="font-archivo" style={{ padding: "8px 10px", textAlign: "center", fontWeight: 700 }}>{row.position}</td>
+                              <td className="font-archivo" style={{ padding: "8px 10px", fontWeight: 600 }}>{row.team}</td>
+                              <td style={{ padding: "8px 10px", textAlign: "center" }}>{row.played}</td>
+                              <td style={{ padding: "8px 10px", textAlign: "center" }}>{row.won}</td>
+                              <td style={{ padding: "8px 10px", textAlign: "center" }}>{row.drawn}</td>
+                              <td style={{ padding: "8px 10px", textAlign: "center" }}>{row.lost}</td>
+                              <td style={{ padding: "8px 10px", textAlign: "center" }}>{row.pf}</td>
+                              <td style={{ padding: "8px 10px", textAlign: "center" }}>{row.pa}</td>
+                              <td style={{ padding: "8px 10px", textAlign: "center" }}>{row.pd > 0 ? `+${row.pd}` : row.pd}</td>
+                              <td style={{ padding: "8px 10px", textAlign: "center" }}>{row.bp}</td>
+                              <td className="font-archivo" style={{ padding: "8px 10px", textAlign: "center", fontWeight: 700, color: comp.color }}>{row.pts}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p style={{ fontSize: "0.65rem", color: "var(--muted)", padding: "6px 12px", textAlign: "right" }}>Source: Wikipedia · updates every 3 hours</p>
+                  </div>
+                )}
               </section>
             )}
           </div>
