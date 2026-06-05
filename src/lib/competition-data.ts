@@ -214,7 +214,7 @@ const getCachedFixtures = unstable_cache(
 
 const getCachedStandings = unstable_cache(
   scrapeStandings,
-  ["wiki-standings"],
+  ["wiki-standings-v2"],
   { revalidate: 10800 }
 );
 

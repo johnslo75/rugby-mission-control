@@ -8,6 +8,7 @@ export interface Competition {
   season: string;
   color: string;
   emoji: string;
+  logo?: string;
   hasStandings: boolean;
   hasFixtures: boolean;
   description: string;
@@ -42,6 +43,7 @@ export const COMPETITIONS: Competition[] = [
     shortName: "URC",
     region: "northern",
     season: "2025–26",
+    logo: "https://en.wikipedia.org/wiki/Special:FilePath/United_Rugby_Championship_logo.svg",
     color: "#00a86b",
     emoji: "🏉",
     hasStandings: true,

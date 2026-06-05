@@ -62,7 +62,10 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
       <div style={{ borderLeft: `6px solid ${comp.color}`, background: "var(--card)", borderBottom: "1px solid var(--rule)" }}>
         <div style={{ maxWidth: 1240, margin: "0 auto", padding: "40px 20px 36px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-            <span style={{ fontSize: "2.5rem" }}>{comp.emoji}</span>
+            {comp.logo
+              ? <img src={comp.logo} alt={comp.name} style={{ width: 56, height: 56, objectFit: "contain" }} />
+              : <span style={{ fontSize: "2.5rem" }}>{comp.emoji}</span>
+            }
             <span className="font-archivo" style={{
               background: comp.color, color: "#fff", fontWeight: 900,
               fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase",
