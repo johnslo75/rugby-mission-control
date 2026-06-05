@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { invalidate } from "@/lib/cache";
 
+// Wrap any DB call with a hard 10s timeout
+function withTimeout<T>(promise: Promise<T>, ms = 10000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("DB timeout")), ms)
+    ),
+  ]);
+}
+
 export interface Story {
   id: string;
   slug: string;
@@ -72,40 +82,50 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as Omit<Story, "id"> & { slug?: string };
-  const id = Date.now().toString();
-  const slug = body.slug ? body.slug : slugify(body.title);
-  await pool.query(`
-    INSERT INTO stories (id, slug, title, excerpt, body, category, author, date,
-      image_url, video_url, image_emoji, image_bg, featured, viral_score, match_info, published, tags)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
-  `, [
-    id, slug, body.title, body.excerpt, body.body, body.category, body.author, body.date,
-    body.imageUrl || '', body.videoUrl || '', body.imageEmoji || '🏉', body.imageBg || '#1a2a1a',
-    body.featured || false, body.viralScore || null, body.matchInfo || null,
-    true, body.tags || []
-  ]);
-  const { rows } = await pool.query("SELECT * FROM stories WHERE id=$1", [id]);
-  invalidate("all-stories");
-  return NextResponse.json(rowToStory(rows[0]));
+  try {
+    const body = (await req.json()) as Omit<Story, "id"> & { slug?: string };
+    const id = Date.now().toString();
+    const slug = body.slug ? body.slug : slugify(body.title);
+    await withTimeout(pool.query(`
+      INSERT INTO stories (id, slug, title, excerpt, body, category, author, date,
+        image_url, video_url, image_emoji, image_bg, featured, viral_score, match_info, published, tags)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+    `, [
+      id, slug, body.title, body.excerpt, body.body, body.category, body.author, body.date,
+      body.imageUrl || '', body.videoUrl || '', body.imageEmoji || '🏉', body.imageBg || '#1a2a1a',
+      body.featured || false, body.viralScore || null, body.matchInfo || null,
+      true, body.tags || []
+    ]));
+    const { rows } = await pool.query("SELECT * FROM stories WHERE id=$1", [id]);
+    invalidate("all-stories");
+    return NextResponse.json(rowToStory(rows[0]));
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 export async function PUT(req: NextRequest) {
-  const body = (await req.json()) as Story;
-  await pool.query(`
-    UPDATE stories SET
-      title=$2, excerpt=$3, body=$4, category=$5, author=$6, date=$7,
-      image_url=$8, video_url=$9, image_emoji=$10, image_bg=$11,
-      featured=$12, viral_score=$13, match_info=$14, published=$15, tags=$16
-    WHERE id=$1
-  `, [
-    body.id, body.title, body.excerpt, body.body, body.category, body.author, body.date,
-    body.imageUrl || '', body.videoUrl || '', body.imageEmoji || '🏉', body.imageBg || '#1a2a1a',
-    body.featured || false, body.viralScore || null, body.matchInfo || null,
-    body.published || false, body.tags || []
-  ]);
-  invalidate("all-stories");
-  return NextResponse.json(body);
+  try {
+    const body = (await req.json()) as Story;
+    await withTimeout(pool.query(`
+      UPDATE stories SET
+        title=$2, excerpt=$3, body=$4, category=$5, author=$6, date=$7,
+        image_url=$8, video_url=$9, image_emoji=$10, image_bg=$11,
+        featured=$12, viral_score=$13, match_info=$14, published=$15, tags=$16
+      WHERE id=$1
+    `, [
+      body.id, body.title, body.excerpt, body.body, body.category, body.author, body.date,
+      body.imageUrl || '', body.videoUrl || '', body.imageEmoji || '🏉', body.imageBg || '#1a2a1a',
+      body.featured || false, body.viralScore || null, body.matchInfo || null,
+      body.published || false, body.tags || []
+    ]));
+    invalidate("all-stories");
+    return NextResponse.json(body);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {

@@ -61,23 +61,32 @@ function EditModal({ story, onSave, onClose, isNew }: {
 
   async function save() {
     setSaving(true);
-    if (isNew) {
-      const res = await fetch("/api/stories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
-      });
-      const created = await res.json() as Story;
-      onSave(created);
-    } else {
-      await fetch("/api/stories", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
-      });
-      onSave(draft);
+    try {
+      if (isNew) {
+        const res = await fetch("/api/stories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(draft),
+          signal: AbortSignal.timeout(12000),
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        const created = await res.json() as Story;
+        onSave(created);
+      } else {
+        const res = await fetch("/api/stories", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(draft),
+          signal: AbortSignal.timeout(12000),
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        onSave(draft);
+      }
+    } catch (err) {
+      alert(`⚠️ Save failed: ${err instanceof Error ? err.message : "Unknown error"}. Please try again.`);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   }
 
   return (
