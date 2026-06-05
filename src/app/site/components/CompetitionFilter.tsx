@@ -117,7 +117,10 @@ export default function CompetitionFilter({ stories, initialCompetition }: Props
                   borderColor: isSelected ? comp.color : "var(--rule)",
                 }}
               >
-                {comp.emoji} {comp.shortName}
+                {comp.logo
+                  ? <img src={comp.logo} alt={comp.name} style={{ width: 16, height: 16, objectFit: "contain", verticalAlign: "middle" }} />
+                  : <span>{comp.emoji}</span>
+                } {comp.shortName}
               </button>
             );
           })}
@@ -141,7 +144,10 @@ export default function CompetitionFilter({ stories, initialCompetition }: Props
           background: "var(--card)", borderRadius: "0 var(--radius) var(--radius) 0",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: "1.2rem" }}>{selectedComp.emoji}</span>
+            {selectedComp.logo
+              ? <img src={selectedComp.logo} alt={selectedComp.name} style={{ width: 24, height: 24, objectFit: "contain" }} />
+              : <span style={{ fontSize: "1.2rem" }}>{selectedComp.emoji}</span>
+            }
             <span className="font-archivo" style={{ fontWeight: 900, fontSize: "0.85rem", color: "var(--ink)" }}>
               {selectedComp.name}
             </span>
