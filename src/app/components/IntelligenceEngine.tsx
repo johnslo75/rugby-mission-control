@@ -54,6 +54,16 @@ function PublishDropdown({ idea, story, onPublish, publishing, ideaKey }: {
           boxShadow: "0 4px 16px rgba(0,0,0,0.12)", zIndex: 50, minWidth: 220,
           maxHeight: 360, overflowY: "auto",
         }}>
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 pt-2 pb-1">General</div>
+            <button
+              onClick={() => { setOpen(false); onPublish(idea, story, "News"); }}
+              className="w-full text-left text-xs px-3 py-2 hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors"
+              style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: "1px solid #f0f0f0" }}
+            >
+              <span>📰</span><span>News</span>
+            </button>
+          </div>
           {REGION_ORDER.map((region) => (
             <div key={region}>
               <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 pt-2 pb-1">

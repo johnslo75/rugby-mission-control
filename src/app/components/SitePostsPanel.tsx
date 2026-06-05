@@ -133,6 +133,9 @@ function EditModal({ story, onSave, onClose, isNew }: {
                 value={draft.category}
                 onChange={(e) => setDraft({ ...draft, category: e.target.value })}
               >
+                <optgroup label="General">
+                  <option value="News">📰 News</option>
+                </optgroup>
                 {REGION_ORDER.map((region) => (
                   <optgroup key={region} label={REGION_LABELS[region]}>
                     {COMPETITIONS_BY_REGION[region].map((comp) => (
