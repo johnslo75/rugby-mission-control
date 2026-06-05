@@ -9,6 +9,7 @@ import type { Region } from "@/lib/competitions";
 const REGION_ORDER: Region[] = ["northern", "southern", "global", "tier2"];
 
 const NAV = [
+  { label: "Home", href: "/site" },
   { label: "News", href: "/site/latest" },
   { label: "Fixtures", href: "/site/fixtures" },
   { label: "Match Previews", href: "/site/category/match-previews" },
