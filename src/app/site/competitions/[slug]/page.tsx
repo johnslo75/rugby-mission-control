@@ -10,6 +10,7 @@ import { COMPETITIONS, COMPETITION_MAP } from "@/lib/competitions";
 import type { Story } from "../../../api/stories/route";
 import { getCompetitionData } from "@/lib/competition-data";
 import type { Fixture, StandingRow } from "@/lib/competition-data";
+import { teamInitials } from "@/lib/team-logos";
 
 export const dynamic = "force-dynamic";
 
@@ -152,11 +153,20 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
                     {fixtures.map((f, i) => (
                       <div key={f.id} style={{
                         display: "grid", gridTemplateColumns: "1fr auto 1fr",
-                        alignItems: "center", gap: 12, padding: "12px 16px",
+                        alignItems: "center", gap: 8, padding: "10px 16px",
                         borderBottom: i < fixtures.length - 1 ? "1px solid var(--rule)" : "none",
                         background: f.status === "live" ? "#f0fdf4" : undefined,
                       }}>
-                        <div className="font-archivo" style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--ink)", textAlign: "right" }}>{f.homeTeam}</div>
+                        {/* Home team */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                          <span className="font-archivo" style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--ink)", textAlign: "right" }}>{f.homeTeam}</span>
+                          {f.homeLogo ? (
+                            <img src={f.homeLogo} alt={f.homeTeam} style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }} />
+                          ) : (
+                            <span style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--ink-2)", color: "#fff", fontSize: "0.55rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{teamInitials(f.homeTeam)}</span>
+                          )}
+                        </div>
+                        {/* Score / date */}
                         <div style={{ textAlign: "center", minWidth: 90 }}>
                           {f.status === "completed" ? (
                             <span className="font-archivo" style={{ fontWeight: 900, fontSize: "1rem", color: "var(--ink)" }}>
@@ -171,7 +181,15 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
                           )}
                           {f.venue && <div style={{ fontSize: "0.65rem", color: "var(--muted)", marginTop: 2 }}>{f.venue}</div>}
                         </div>
-                        <div className="font-archivo" style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--ink)" }}>{f.awayTeam}</div>
+                        {/* Away team */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          {f.awayLogo ? (
+                            <img src={f.awayLogo} alt={f.awayTeam} style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }} />
+                          ) : (
+                            <span style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--ink-2)", color: "#fff", fontSize: "0.55rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{teamInitials(f.awayTeam)}</span>
+                          )}
+                          <span className="font-archivo" style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--ink)" }}>{f.awayTeam}</span>
+                        </div>
                       </div>
                     ))}
                   </div>

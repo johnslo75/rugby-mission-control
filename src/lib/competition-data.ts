@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { unstable_cache } from "next/cache";
+import { getTeamLogo } from "./team-logos";
 
 // ─── Competition config ────────────────────────────────────────────────────────
 
@@ -55,6 +56,8 @@ export interface Fixture {
   id: string;
   homeTeam: string;
   awayTeam: string;
+  homeLogo: string | null;
+  awayLogo: string | null;
   homeScore: number | null;
   awayScore: number | null;
   date: string;
@@ -117,10 +120,14 @@ async function fetchFixtures(eventId: string): Promise<Fixture[]> {
           statusRaw === "C" ? "completed" :
           statusRaw === "L" ? "live" : "scheduled";
 
+        const homeTeam = teams[0]?.name || "TBC";
+        const awayTeam = teams[1]?.name || "TBC";
         return {
           id: String(m.matchId || m.id || Math.random()),
-          homeTeam: teams[0]?.name || "TBC",
-          awayTeam: teams[1]?.name || "TBC",
+          homeTeam,
+          awayTeam,
+          homeLogo: getTeamLogo(homeTeam),
+          awayLogo: getTeamLogo(awayTeam),
           homeScore: status !== "scheduled" ? (scores?.[0] ?? 0) : null,
           awayScore: status !== "scheduled" ? (scores?.[1] ?? 0) : null,
           date: dateStr,
