@@ -43,7 +43,7 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
 
   const allStories = (await getAllStories()) as StoryExt[];
   const stories = allStories
-    .filter((s) => (s.competitions || []).includes(slug))
+    .filter((s) => (s.competitions || []).includes(slug) || s.category === comp.name)
     .slice(0, 6);
 
   return (
