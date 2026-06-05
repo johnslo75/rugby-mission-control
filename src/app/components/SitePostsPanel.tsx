@@ -131,7 +131,10 @@ function EditModal({ story, onSave, onClose, isNew }: {
               <select
                 className="field-input"
                 value={draft.category}
-                onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+                onChange={(e) => {
+                  const comp = COMPETITIONS.find((c) => c.name === e.target.value);
+                  setDraft({ ...draft, category: e.target.value, competitions: comp ? [comp.slug] : [] });
+                }}
               >
                 <optgroup label="General">
                   <option value="News">📰 News</option>
