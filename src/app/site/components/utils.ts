@@ -1,5 +1,5 @@
 import pool from "@/lib/db";
-import { cached } from "@/lib/cache";
+import { unstable_cache } from "next/cache";
 import type { Story } from "../../api/stories/route";
 import type { Score } from "../../api/scores/route";
 
@@ -35,34 +35,40 @@ export async function getWeekendScores(): Promise<Score[]> {
   }
 }
 
-async function fetchAllStories(): Promise<Story[]> {
-  const { rows } = await pool.query(
-    "SELECT * FROM stories WHERE published=true ORDER BY date DESC"
-  );
-  return rows.map((r) => ({
-    id: r.id,
-    slug: r.slug,
-    title: r.title,
-    excerpt: r.excerpt,
-    body: r.body,
-    category: r.category,
-    author: r.author,
-    date: r.date,
-    imageUrl: r.image_url || "",
-    videoUrl: r.video_url || undefined,
-    imageEmoji: r.image_emoji || "🏉",
-    imageBg: r.image_bg || "#1a2a1a",
-    featured: r.featured,
-    viralScore: r.viral_score,
-    matchInfo: r.match_info || undefined,
-    published: r.published,
-    tags: r.tags || [],
-  }));
-}
+const fetchAllStories = unstable_cache(
+  async (): Promise<Story[]> => {
+    const { rows } = await pool.query(
+      "SELECT * FROM stories WHERE published=true ORDER BY date DESC"
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      slug: r.slug,
+      title: r.title,
+      excerpt: r.excerpt,
+      body: r.body,
+      category: r.category,
+      author: r.author,
+      date: r.date,
+      imageUrl: r.image_url || "",
+      videoUrl: r.video_url || undefined,
+      imageEmoji: r.image_emoji || "🏉",
+      imageBg: r.image_bg || "#1a2a1a",
+      featured: r.featured,
+      viralScore: r.viral_score,
+      matchInfo: r.match_info || undefined,
+      published: r.published,
+      tags: r.tags || [],
+      competitions: r.competitions || [],
+      isPriority: r.is_priority || false,
+    }));
+  },
+  ["all-stories"],
+  { revalidate: 300 }  // cache for 5 minutes
+);
 
 export async function getAllStories(): Promise<Story[]> {
   try {
-    return await cached("all-stories", 30, fetchAllStories);
+    return await fetchAllStories();
   } catch {
     return [];
   }
