@@ -294,21 +294,35 @@ async function generateWithClaude(stories: (RawStory & { mentionCount: number })
 
 // ─── Main pipeline ────────────────────────────────────────────────────────────
 
-export async function runScanPipeline(): Promise<ScanResult> {
-  // 1. Fetch all sources in parallel
-  const [redditStories, ...rssResults] = await Promise.all([
-    fetchReddit(),
-    ...RSS_FEEDS.map((f) => fetchRSS(f.url, f.name)),
-  ]);
+// Fetch URLs in batches to avoid overwhelming the server
+async function fetchInBatches<T>(tasks: (() => Promise<T>)[], batchSize = 4): Promise<T[]> {
+  const results: T[] = [];
+  for (let i = 0; i < tasks.length; i += batchSize) {
+    const batch = tasks.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map((t) => t()));
+    results.push(...batchResults);
+  }
+  return results;
+}
 
-  const allStories: RawStory[] = [redditStories, ...rssResults].flat();
+export async function runScanPipeline(): Promise<ScanResult> {
+  // 1. Fetch all sources in batches of 4 (not all 18 at once)
+  const allTasks = [
+    () => fetchReddit(),
+    ...RSS_FEEDS.map((f) => () => fetchRSS(f.url, f.name)),
+  ];
+  const allResults = await fetchInBatches(allTasks, 4);
+  const allStories: RawStory[] = allResults.flat();
 
   // 2. Deduplicate & rank
   const ranked = deduplicateAndRank(allStories);
 
-  // 3. Fetch OG images for top 3 stories in parallel (non-blocking)
+  // 3. Fetch OG images one at a time to avoid network spike
   const top3 = ranked.slice(0, 3);
-  const ogImages = await Promise.all(top3.map((s) => fetchOgImage(s.link)));
+  const ogImages: (string | undefined)[] = [];
+  for (const s of top3) {
+    ogImages.push(await fetchOgImage(s.link).catch(() => undefined));
+  }
 
   // 4. Claude generation
   const claudeResult = await generateWithClaude(ranked);
