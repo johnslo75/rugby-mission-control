@@ -308,7 +308,7 @@ export default async function HomePage() {
       <SiteHeader />
       <BreakingTicker stories={stories.slice(0, 5).map((s) => ({ title: s.title, slug: s.slug }))} />
 
-      <div style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 20px 0" }}>
+      <div style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 20px 0", boxSizing: "border-box", width: "100%" }}>
 
         {/* ── Hero + right column ── */}
         <div className="home-main-grid">

@@ -489,3 +489,39 @@
     height: auto !important;
   }
 }
+
+/* ─── Homepage hero — mobile ─────────────────────────── */
+@media (max-width: 768px) {
+  /* Ensure all inline-padded containers respect screen width */
+  .site-root > div,
+  .site-root section,
+  .site-root article,
+  .site-root main {
+    box-sizing: border-box;
+    max-width: 100vw;
+  }
+
+  /* Cards must not overflow */
+  .card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Hero title and excerpt wrap properly */
+  .card h1,
+  .card h2,
+  .card p {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+}
+
+/* ─── Grid children overflow fix ────────────────────── */
+/* Grid children default min-width is auto which can cause overflow */
+.home-main-grid > *,
+.home-side-grid > *,
+.comp-layout > *,
+.cat-3col > *,
+.home-3col > * {
+  min-width: 0;
+}
