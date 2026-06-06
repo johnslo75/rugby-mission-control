@@ -2,51 +2,29 @@
 
 import { useState } from "react";
 import Header from "../components/Header";
-import ChecklistPanel from "../components/ChecklistPanel";
-import ContentPanel from "../components/ContentPanel";
-import PerformancePanel from "../components/PerformancePanel";
 import IntelligenceEngine from "../components/IntelligenceEngine";
 import SitePostsPanel from "../components/SitePostsPanel";
-import BestIdeasPanel from "../components/BestIdeasPanel";
 import WeekendScoresPanel from "../components/WeekendScoresPanel";
 import HotTakesPanel from "../components/HotTakesPanel";
 
-interface PerfEntry {
-  id: string;
-  date: string;
-  platform: string;
-  hook: string;
-  views: number;
-  likes: number;
-  followsGained: number;
-  format: string;
-  notes: string;
-}
-
-function getPostsThisWeek(entries: PerfEntry[]): number {
-  const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay());
-  startOfWeek.setHours(0, 0, 0, 0);
-  return entries.filter((e) => new Date(e.date) >= startOfWeek).length;
-}
-
-type Tab = "dashboard" | "best" | "scores" | "site";
+type Tab = "dashboard" | "scores" | "site";
 
 export default function HubDashboard() {
-  const [perfEntries, setPerfEntries] = useState<PerfEntry[]>([]);
-  const [contentRefresh, setContentRefresh] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header postsThisWeek={getPostsThisWeek(perfEntries)} />
+      <Header postsThisWeek={0} />
 
       {/* Tab bar */}
       <div className="border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1">
-            {([["dashboard", "📊 Dashboard"], ["best", "⭐ Best Ideas"], ["scores", "🏆 Scores"], ["site", "🌐 Site Posts"]] as const).map(([tab, label]) => (
+            {([
+              ["dashboard", "🧠 Intelligence"],
+              ["scores",    "🏆 Fixtures & Scores"],
+              ["site",      "🌐 Site Posts"],
+            ] as const).map(([tab, label]) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -65,16 +43,8 @@ export default function HubDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         {activeTab === "dashboard" && (
-          <>
-            <IntelligenceEngine onSaved={() => setContentRefresh((n) => n + 1)} />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              <ChecklistPanel />
-              <ContentPanel refreshTrigger={contentRefresh} />
-              <PerformancePanel onDataChange={setPerfEntries} />
-            </div>
-          </>
+          <IntelligenceEngine onSaved={() => {}} />
         )}
-        {activeTab === "best" && <BestIdeasPanel />}
         {activeTab === "scores" && <WeekendScoresPanel />}
         {activeTab === "site" && (
           <>
