@@ -9,6 +9,7 @@ import IntelligenceEngine from "../components/IntelligenceEngine";
 import SitePostsPanel from "../components/SitePostsPanel";
 import BestIdeasPanel from "../components/BestIdeasPanel";
 import WeekendScoresPanel from "../components/WeekendScoresPanel";
+import HotTakesPanel from "../components/HotTakesPanel";
 
 interface PerfEntry {
   id: string;
@@ -75,7 +76,12 @@ export default function HubDashboard() {
         )}
         {activeTab === "best" && <BestIdeasPanel />}
         {activeTab === "scores" && <WeekendScoresPanel />}
-        {activeTab === "site" && <SitePostsPanel />}
+        {activeTab === "site" && (
+          <>
+            <SitePostsPanel />
+            <HotTakesPanel />
+          </>
+        )}
       </main>
     </div>
   );

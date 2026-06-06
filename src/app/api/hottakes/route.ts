@@ -1,10 +1,38 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 
 export async function GET() {
   const { rows } = await pool.query(
-    "SELECT * FROM hottakes ORDER BY CASE WHEN active THEN 0 ELSE 1 END, date DESC LIMIT 1"
+    "SELECT * FROM hottakes ORDER BY CASE WHEN active THEN 0 ELSE 1 END, date DESC"
   );
-  if (!rows[0]) return NextResponse.json(null);
-  return NextResponse.json({ id: rows[0].id, text: rows[0].text, source: rows[0].source, active: rows[0].active, date: rows[0].date });
+  return NextResponse.json(rows.map((r) => ({
+    id: r.id, text: r.text, source: r.source, active: r.active, date: r.date,
+  })));
+}
+
+export async function POST(req: NextRequest) {
+  const { text, source } = await req.json() as { text: string; source: string };
+  const id = Date.now().toString();
+  await pool.query(
+    "INSERT INTO hottakes (id, text, source, active, date) VALUES ($1, $2, $3, false, $4)",
+    [id, text, source, new Date().toISOString().slice(0, 10)]
+  );
+  return NextResponse.json({ id, text, source, active: false });
+}
+
+export async function PUT(req: NextRequest) {
+  const { id, text, source, active } = await req.json() as { id: string; text: string; source: string; active: boolean };
+  // If activating this one, deactivate all others first
+  if (active) await pool.query("UPDATE hottakes SET active = false");
+  await pool.query(
+    "UPDATE hottakes SET text=$2, source=$3, active=$4 WHERE id=$1",
+    [id, text, source, active]
+  );
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(req: NextRequest) {
+  const id = req.nextUrl.searchParams.get("id");
+  await pool.query("DELETE FROM hottakes WHERE id=$1", [id]);
+  return NextResponse.json({ ok: true });
 }
