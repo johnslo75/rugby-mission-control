@@ -10,10 +10,17 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 body {
   background: #f8f9fa;
   color: #1a1a1a;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

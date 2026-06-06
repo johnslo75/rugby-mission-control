@@ -22,6 +22,8 @@
   background: var(--bg);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; /* prevent horizontal scroll on mobile */
+  width: 100%;
 }
 
 /* ─── Typography ─────────────────────────────────────── */
@@ -460,4 +462,51 @@
 .mobile-menu-btn { display: none; }
 @media (max-width: 768px) {
   .mobile-menu-btn { display: block; }
+}
+
+/* ─── Mobile overflow fixes ──────────────────────────── */
+@media (max-width: 768px) {
+  /* Prevent any element from causing horizontal scroll */
+  .site-root * {
+    max-width: 100%;
+  }
+
+  /* Images never overflow */
+  .site-root img {
+    height: auto;
+  }
+
+  /* Reduce padding on containers */
+  .site-root [style*="padding: 32px 20px"],
+  .site-root [style*="padding: 40px 20px"] {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Hero card — tighten text */
+  .site-root h1 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* TopBar — shrink or hide on tiny screens */
+  .site-topbar {
+    font-size: 0.65rem;
+  }
+
+  /* Fixture rows — allow text to wrap */
+  .site-root .font-archivo {
+    word-break: break-word;
+  }
+
+  /* Article body — full width, no overflow */
+  .article-body {
+    overflow-x: hidden;
+  }
+  .article-body img,
+  .article-body video,
+  .article-body iframe {
+    max-width: 100% !important;
+    height: auto !important;
+  }
 }
