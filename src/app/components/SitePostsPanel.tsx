@@ -178,10 +178,10 @@ function EditModal({ story, onSave, onClose, isNew }: {
                 onChange={(e) => { if (e.target.value) setDraft({ ...draft, slug: e.target.value }); }}
               >
                 <option value="">— pick a topic —</option>
-                {COMPETITIONS.filter((c) => c.hasFixtures).map((comp) => (
+                {COMPETITIONS.filter((comp) => comp.hasFixtures).map((comp) => (
                   <optgroup key={comp.slug} label={comp.name}>
                     {comp.evergreen.map((topic) => (
-                      <option key={topic} value={topic}>{topic.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>
+                      <option key={topic} value={topic}>{topic.replace(/-/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase())}</option>
                     ))}
                   </optgroup>
                 ))}
