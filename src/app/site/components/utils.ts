@@ -11,14 +11,14 @@ export const getWeekendScores = unstable_cache(
     try {
       const now = new Date();
       const from = new Date(now);
-      from.setDate(now.getDate() - 3);
+      from.setDate(now.getDate() - 14);  // last 2 weeks of results
       const to = new Date(now);
       to.setDate(now.getDate() + 7);
       const { rows } = await pool.query(
         `SELECT * FROM scores
          WHERE match_date >= $1 AND match_date <= $2
            AND home_score IS NOT NULL
-         ORDER BY competition, match_date`,
+         ORDER BY match_date DESC, competition`,
         [from.toISOString().slice(0, 10), to.toISOString().slice(0, 10)]
       );
       return rows.map((r) => ({
