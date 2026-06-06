@@ -37,7 +37,20 @@ function TeamCell({ name, align }: { name: string; align: "left" | "right" }) {
 
 export default async function FixturesPage() {
   // Pull from scores DB — this includes both results and upcoming fixtures
-  const scores = await getAllFixtures() as (Score & { match_date?: string })[];
+  const allScores = await getAllFixtures() as (Score & { match_date?: string })[];
+
+  const today = new Date().toISOString().slice(0, 10);
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  const cutoff = threeDaysAgo.toISOString().slice(0, 10);
+
+  // Keep results from last 3 days + all upcoming fixtures
+  const scores = allScores.filter((s) => {
+    const date = s.matchDate?.slice(0, 10) || "";
+    if (date >= today) return true; // upcoming
+    if (date >= cutoff && s.homeScore !== null) return true; // recent results
+    return false;
+  });
 
   // Group by date
   const grouped = scores.reduce<Record<string, Score[]>>((acc, s) => {
@@ -47,7 +60,6 @@ export default async function FixturesPage() {
     return acc;
   }, {});
 
-  const today = new Date().toISOString().slice(0, 10);
   const sortedDates = Object.keys(grouped).sort();
 
   const formatDay = (iso: string) => {
