@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { revalidateTag } from "next/cache";
 
 export interface Score {
   id: string;
@@ -139,6 +140,9 @@ export async function GET(req: NextRequest) {
     `, [s.id, s.competition, s.homeTeam, s.awayTeam, s.homeScore, s.awayScore,
         s.matchDate.slice(0, 10), s.status, s.source]);
   }
+
+  // Bust the fixtures page cache so changes appear immediately
+  revalidateTag("weekend-scores", "");
 
   // Return combined (ESPN + manual), deduped by ID
   const allById = new Map<string, Score>();

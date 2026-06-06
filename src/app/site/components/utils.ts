@@ -35,7 +35,7 @@ export const getWeekendScores = unstable_cache(
     }
   },
   ["weekend-scores"],
-  { revalidate: 300 } // 5 minutes
+  { revalidate: 300, tags: ["weekend-scores"] }
 );
 
 const fetchAllStories = unstable_cache(
