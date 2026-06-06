@@ -29,7 +29,7 @@ const getHotTake = unstable_cache(
   { revalidate: 300 } // 5 minutes
 );
 
-const SIX_NATIONS = new Date("2026-02-07");
+const SIX_NATIONS = new Date("2027-02-06");
 const RWC  = new Date("2027-10-01");
 
 // ── Image placeholder ──────────────────────────────────────────────
@@ -183,7 +183,7 @@ function CountdownCard() {
         <div className="countdown-label">Days to Six Nations 2026</div>
         <div className="countdown-number">{sixNationsDays}</div>
         <div className="font-archivo-narrow" style={{ fontSize: "0.72rem", color: "#666", marginTop: 2 }}>
-          7 February 2026 · Europe
+          6 February 2027 · Europe
         </div>
       </div>
       <div>
