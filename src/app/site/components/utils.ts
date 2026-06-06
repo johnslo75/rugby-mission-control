@@ -11,7 +11,7 @@ export const getWeekendScores = unstable_cache(
     try {
       const now = new Date();
       const from = new Date(now);
-      from.setDate(now.getDate() - 7);  // last 7 days of results
+      from.setDate(now.getDate() - 3);  // last 3 days of results
       const to = new Date(now);
       to.setDate(now.getDate() + 7);
       const { rows } = await pool.query(
