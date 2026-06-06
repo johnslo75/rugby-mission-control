@@ -439,23 +439,23 @@
 
 @media (max-width: 768px) {
   /* Home */
-  .home-main-grid  { grid-template-columns: 1fr; }
-  .home-side-grid  { grid-template-columns: 1fr; }
-  .home-3col       { grid-template-columns: 1fr; }
-  .home-sidebar    { display: none; }
+  .home-main-grid  { grid-template-columns: 1fr !important; }
+  .home-side-grid  { grid-template-columns: 1fr !important; }
+  .home-3col       { grid-template-columns: 1fr !important; }
+  .home-sidebar    { display: none !important; }
 
   /* Competition */
-  .comp-layout     { grid-template-columns: 1fr; }
-  .comp-sidebar    { display: none; }
+  .comp-layout     { grid-template-columns: 1fr !important; }
+  .comp-sidebar    { display: none !important; }
 
   /* Category */
-  .cat-3col        { grid-template-columns: 1fr; }
+  .cat-3col        { grid-template-columns: 1fr !important; }
 
   /* Footer */
-  .footer-grid     { grid-template-columns: 1fr; gap: 24px; }
+  .footer-grid     { grid-template-columns: 1fr !important; gap: 24px !important; }
 
   /* SiteHeader */
-  .site-header-nav { display: none; }
+  .site-header-nav { display: none !important; }
 }
 
 /* ─── Mobile hamburger visibility ───────────────────── */
@@ -466,37 +466,16 @@
 
 /* ─── Mobile overflow fixes ──────────────────────────── */
 @media (max-width: 768px) {
-  /* Prevent any element from causing horizontal scroll */
-  .site-root * {
-    max-width: 100%;
-  }
-
   /* Images never overflow */
   .site-root img {
+    max-width: 100%;
     height: auto;
-  }
-
-  /* Reduce padding on containers */
-  .site-root [style*="padding: 32px 20px"],
-  .site-root [style*="padding: 40px 20px"] {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
   }
 
   /* Hero card — tighten text */
   .site-root h1 {
     word-break: break-word;
     overflow-wrap: break-word;
-  }
-
-  /* TopBar — shrink or hide on tiny screens */
-  .site-topbar {
-    font-size: 0.65rem;
-  }
-
-  /* Fixture rows — allow text to wrap */
-  .site-root .font-archivo {
-    word-break: break-word;
   }
 
   /* Article body — full width, no overflow */
