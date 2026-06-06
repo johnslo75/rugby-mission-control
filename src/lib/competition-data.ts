@@ -202,13 +202,13 @@ async function scrapeStandings(wikiUrl: string): Promise<StandingRow[]> {
 
 const getCachedFixtures = unstable_cache(
   fetchFixtures,
-  ["wr-fixtures"],
+  ["wr-fixtures-v2"],
   { revalidate: 10800 }
 );
 
 const getCachedStandings = unstable_cache(
   scrapeStandings,
-  ["wiki-standings-v3"],
+  ["wiki-standings-v4"],
   { revalidate: 10800 }
 );
 
