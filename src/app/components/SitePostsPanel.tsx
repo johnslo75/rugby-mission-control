@@ -159,6 +159,36 @@ function EditModal({ story, onSave, onClose, isNew }: {
             </div>
           </div>
 
+          {/* Slug + Evergreen picker */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="field-label">Slug <span className="text-gray-400 font-normal">(leave blank to auto-generate)</span></label>
+              <input
+                className="field-input font-mono text-sm"
+                placeholder="e.g. urc-format-explained"
+                value={draft.slug || ""}
+                onChange={(e) => setDraft({ ...draft, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") })}
+              />
+            </div>
+            <div>
+              <label className="field-label">Evergreen topic <span className="text-gray-400 font-normal">(auto-fills slug)</span></label>
+              <select
+                className="field-input"
+                value=""
+                onChange={(e) => { if (e.target.value) setDraft({ ...draft, slug: e.target.value }); }}
+              >
+                <option value="">— pick a topic —</option>
+                {COMPETITIONS.filter((c) => c.hasFixtures).map((comp) => (
+                  <optgroup key={comp.slug} label={comp.name}>
+                    {comp.evergreen.map((topic) => (
+                      <option key={topic} value={topic}>{topic.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {/* Image */}
           <div>
             <label className="field-label">Image</label>
