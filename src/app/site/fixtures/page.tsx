@@ -3,7 +3,7 @@ import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { getTeamLogo, teamInitials } from "@/lib/team-logos";
 import { COMPETITIONS } from "@/lib/competitions";
-import { getWeekendScores } from "../components/utils";
+import { getAllFixtures } from "../components/utils";
 import type { Score } from "../../api/scores/route";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +37,7 @@ function TeamCell({ name, align }: { name: string; align: "left" | "right" }) {
 
 export default async function FixturesPage() {
   // Pull from scores DB — this includes both results and upcoming fixtures
-  const scores = await getWeekendScores() as (Score & { match_date?: string })[];
+  const scores = await getAllFixtures() as (Score & { match_date?: string })[];
 
   // Group by date
   const grouped = scores.reduce<Record<string, Score[]>>((acc, s) => {
