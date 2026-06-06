@@ -63,6 +63,13 @@ function PublishDropdown({ idea, story, onPublish, publishing, ideaKey }: {
             >
               <span>📰</span><span>News</span>
             </button>
+            <button
+              onClick={() => { setOpen(false); onPublish(idea, story, "Analysis"); }}
+              className="w-full text-left text-xs px-3 py-2 hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors"
+              style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: "1px solid #f0f0f0" }}
+            >
+              <span>📐</span><span>Analysis</span>
+            </button>
           </div>
           {REGION_ORDER.map((region) => (
             <div key={region}>

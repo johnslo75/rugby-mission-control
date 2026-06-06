@@ -14,6 +14,7 @@ const SLUG_TO_LABEL: Record<string, string> = {
   shithousery: "Shithousery",
   "hot-takes": "Hot Takes",
   tactical: "Tactical",
+  analysis: "Analysis",
   underdog: "Underdog",
   "world-cup": "World Cup",
   results: "Results",

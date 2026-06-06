@@ -138,6 +138,7 @@ function EditModal({ story, onSave, onClose, isNew }: {
               >
                 <optgroup label="General">
                   <option value="News">📰 News</option>
+                  <option value="Analysis">📐 Analysis</option>
                 </optgroup>
                 {REGION_ORDER.map((region) => (
                   <optgroup key={region} label={REGION_LABELS[region]}>
