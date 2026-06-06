@@ -176,7 +176,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               <p className="font-archivo" style={{ fontWeight: 900, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--green)", marginBottom: 12 }}>
                 RWC 2027
               </p>
-              <div className="countdown-number" style={{ fontSize: "3rem" }}>{daysUntil(new Date("2027-10-01"))}</div>
+              <div className="countdown-number" style={{ fontSize: "3rem" }}>{daysUntil(new Date("2027/10/01"))}</div>
               <p className="font-archivo-narrow" style={{ fontSize: "0.78rem", color: "var(--muted)" }}>days to Rugby World Cup 2027</p>
             </div>
           </aside>

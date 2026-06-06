@@ -86,7 +86,9 @@ export function readTime(body: string): number {
 export function daysUntil(target: Date): number {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  return Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 86400000));
+  const t = new Date(target);
+  t.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((t.getTime() - now.getTime()) / 86400000));
 }
 
 export function formatDate(iso: string): string {

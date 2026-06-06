@@ -29,8 +29,8 @@ const getHotTake = unstable_cache(
   { revalidate: 300 } // 5 minutes
 );
 
-const SIX_NATIONS = new Date("2027-02-06");
-const RWC  = new Date("2027-10-01");
+const SIX_NATIONS = new Date("2027/02/06");
+const RWC  = new Date("2027/10/01");
 
 // ── Image placeholder ──────────────────────────────────────────────
 
