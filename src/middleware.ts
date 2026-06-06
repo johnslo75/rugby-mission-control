@@ -22,8 +22,9 @@ export async function middleware(req: NextRequest) {
       pathname === "/login" ||
       pathname.endsWith("/login");
     const isAuthApi = pathname.startsWith("/api/auth");
+    const isCronApi = pathname.startsWith("/api/cron");
 
-    if (!isLoginPage && !isAuthApi) {
+    if (!isLoginPage && !isAuthApi && !isCronApi) {
       // Check session using NextAuth
       const session = await auth();
       if (!session) {
