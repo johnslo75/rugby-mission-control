@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { invalidate } from "@/lib/cache";
+import { revalidateTag } from "next/cache";
 
 // Wrap any DB call with a hard 10s timeout
 function withTimeout<T>(promise: Promise<T>, ms = 10000): Promise<T> {
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
       true, body.tags || [], body.competitions || [], body.isPriority || false,
     ]));
     const { rows } = await pool.query("SELECT * FROM stories WHERE id=$1", [id]);
-    invalidate("all-stories");
+    invalidate("all-stories"); revalidateTag("all-stories", "");
     return NextResponse.json(rowToStory(rows[0]));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Failed";
@@ -128,7 +129,7 @@ export async function PUT(req: NextRequest) {
       body.published || false, body.tags || [],
       body.competitions || [], body.isPriority || false,
     ]));
-    invalidate("all-stories");
+    invalidate("all-stories"); revalidateTag("all-stories", "");
     return NextResponse.json(body);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Failed";
@@ -140,6 +141,6 @@ export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   await pool.query("DELETE FROM stories WHERE id=$1", [id]);
-  invalidate("all-stories");
+  invalidate("all-stories"); revalidateTag("all-stories", "");
   return NextResponse.json({ ok: true });
 }

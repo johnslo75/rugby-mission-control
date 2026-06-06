@@ -67,7 +67,7 @@ const fetchAllStories = unstable_cache(
     }));
   },
   ["all-stories"],
-  { revalidate: 300 }  // cache for 5 minutes
+  { revalidate: 300, tags: ["all-stories"] }
 );
 
 export async function getAllStories(): Promise<Story[]> {
