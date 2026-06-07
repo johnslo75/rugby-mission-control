@@ -313,20 +313,6 @@ function StoryCard({
 
       {expanded && (
         <div className="border-t border-gray-100 p-4 space-y-4 bg-gray-50">
-          {/* OG image preview */}
-          {story.imageUrl && (
-            <div style={{ position: "relative", borderRadius: 6, overflow: "hidden", maxHeight: 180 }}>
-              <img
-                src={story.imageUrl}
-                alt={story.headline}
-                style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }}
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-              <div style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4, letterSpacing: "0.05em" }}>
-                SOURCE IMAGE
-              </div>
-            </div>
-          )}
           <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">
             {story.content_ideas.length} Content Idea{story.content_ideas.length !== 1 ? "s" : ""}
           </p>
@@ -554,7 +540,7 @@ export default function IntelligenceEngine({ onSaved }: { onSaved?: () => void }
           competitions: comp ? [comp.slug] : [],
           author: "Rugby Radar",
           date: new Date().toISOString().slice(0, 10),
-          imageUrl: story.imageUrl || "",
+          imageUrl: "",
           featured: false,
           published: true,
         }),
