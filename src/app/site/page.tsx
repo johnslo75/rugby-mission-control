@@ -346,7 +346,7 @@ export default async function HomePage() {
               <a href="/site/latest" className="section-header-link">All stories →</a>
             </div>
             <CompetitionFilter
-              stories={rest as (Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string; competitions?: string[] })[]}
+              stories={rest.slice(0, 10) as (Story & { imageEmoji?: string; imageBg?: string; imageUrl?: string; competitions?: string[] })[]}
             />
           </section>
 
