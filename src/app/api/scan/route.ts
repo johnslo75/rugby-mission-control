@@ -34,7 +34,6 @@ export interface ProcessedStory {
   content_ideas: ContentIdea[];
   mentionCount: number;
   isIrish?: boolean;
-  imageUrl?: string;
 }
 
 export interface ScanResult {
@@ -121,36 +120,6 @@ async function fetchReddit(): Promise<RawStory[]> {
     }));
   } catch {
     return [];
-  }
-}
-
-// ─── OG image scraper ─────────────────────────────────────────────────────────
-
-async function fetchOgImage(url: string): Promise<string | undefined> {
-  if (!url || url.includes("reddit.com")) return undefined;
-  try {
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(6000),
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; RugbyRadarBot/1.0)",
-        "Accept": "text/html",
-      },
-    });
-    if (!res.ok) return undefined;
-    const html = await res.text();
-
-    // Try og:image first, then twitter:image, then first large <img>
-    const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-    if (ogMatch?.[1]) return ogMatch[1];
-
-    const twitterMatch = html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
-      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
-    if (twitterMatch?.[1]) return twitterMatch[1];
-
-    return undefined;
-  } catch {
-    return undefined;
   }
 }
 
@@ -317,17 +286,10 @@ export async function runScanPipeline(): Promise<ScanResult> {
   // 2. Deduplicate & rank
   const ranked = deduplicateAndRank(allStories);
 
-  // 3. Fetch OG images one at a time to avoid network spike
-  const top3 = ranked.slice(0, 3);
-  const ogImages: (string | undefined)[] = [];
-  for (const s of top3) {
-    ogImages.push(await fetchOgImage(s.link).catch(() => undefined));
-  }
-
-  // 4. Claude generation
+  // 3. Claude generation
   const claudeResult = await generateWithClaude(ranked);
 
-  // 5. Merge Claude output with our ranked data + OG images
+  // 4. Merge Claude output with our ranked data
   const processed: ProcessedStory[] = claudeResult.stories.map((cs, i) => {
     const raw = ranked[i] || ranked[0];
     return {
@@ -340,7 +302,6 @@ export async function runScanPipeline(): Promise<ScanResult> {
       content_ideas: cs.content_ideas,
       mentionCount: raw?.mentionCount || 1,
       isIrish: raw?.isIrish || false,
-      imageUrl: ogImages[i] || undefined,
     };
   });
 
