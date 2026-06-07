@@ -202,14 +202,14 @@ async function scrapeStandings(wikiUrl: string): Promise<StandingRow[]> {
 
 const getCachedFixtures = unstable_cache(
   fetchFixtures,
-  ["wr-fixtures-v2"],
-  { revalidate: 10800 }
+  ["wr-fixtures-v3"],
+  { revalidate: 1800 }  // 30 minutes
 );
 
 const getCachedStandings = unstable_cache(
   scrapeStandings,
-  ["wiki-standings-v4"],
-  { revalidate: 10800 }
+  ["wiki-standings-v5"],
+  { revalidate: 3600 }  // 1 hour
 );
 
 export async function getCompetitionData(slug: string): Promise<{ fixtures: Fixture[]; standings: StandingRow[] }> {
