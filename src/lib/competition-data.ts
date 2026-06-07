@@ -89,7 +89,7 @@ async function fetchFixtures(eventId: string): Promise<Fixture[]> {
     const future = new Date(today);
     future.setDate(today.getDate() + 60);
 
-    const url = `https://api.wr-rims-prod.pulselive.com/rugby/v3/match?language=en&sort=asc&pageSize=50&sport=mru&startDate=${past.toISOString().slice(0, 10)}&endDate=${future.toISOString().slice(0, 10)}&eventIds=${eventId}`;
+    const url = `https://api.wr-rims-prod.pulselive.com/rugby/v3/match?language=en&sort=asc&pageSize=200&sport=mru&startDate=${past.toISOString().slice(0, 10)}&endDate=${future.toISOString().slice(0, 10)}&eventIds=${eventId}`;
 
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" },
@@ -202,7 +202,7 @@ async function scrapeStandings(wikiUrl: string): Promise<StandingRow[]> {
 
 const getCachedFixtures = unstable_cache(
   fetchFixtures,
-  ["wr-fixtures-v3"],
+  ["wr-fixtures-v4"],
   { revalidate: 1800 }  // 30 minutes
 );
 
