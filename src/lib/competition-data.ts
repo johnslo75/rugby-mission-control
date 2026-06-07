@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import { unstable_cache } from "next/cache";
 import { getTeamLogo } from "./team-logos";
+import pool from "./db";
 
 // ─── Competition config ────────────────────────────────────────────────────────
 
@@ -82,8 +83,6 @@ export interface StandingRow {
 
 // ─── Fetch fixtures from ESPN scores DB ───────────────────────────────────────
 // Uses the same DB that powers the fixtures page — populated by ESPN via cron job
-
-import pool from "./db";
 
 async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
   if (!dbCompetitionNames.length) return [];
