@@ -172,14 +172,19 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
                         {/* Score / date */}
                         <div style={{ textAlign: "center", minWidth: 90 }}>
                           {f.status === "completed" ? (
-                            <span className="font-archivo" style={{ fontWeight: 900, fontSize: "1rem", color: "var(--ink)" }}>
-                              {f.homeScore} – {f.awayScore}
-                            </span>
+                            <>
+                              <span className="font-archivo" style={{ fontWeight: 900, fontSize: "1rem", color: "var(--ink)" }}>
+                                {f.homeScore} – {f.awayScore}
+                              </span>
+                              <div className="font-archivo-narrow" style={{ fontSize: "0.65rem", color: "var(--muted)", marginTop: 2 }}>
+                                {new Date(f.date).toLocaleDateString("en-IE", { weekday: "short", day: "numeric", month: "short" })}
+                              </div>
+                            </>
                           ) : f.status === "live" ? (
                             <span style={{ background: "#00a86b", color: "#fff", fontWeight: 700, fontSize: "0.65rem", padding: "2px 7px", borderRadius: 4 }}>LIVE</span>
                           ) : (
                             <span className="font-archivo-narrow" style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
-                              {new Date(f.date).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
+                              {new Date(f.date).toLocaleDateString("en-IE", { weekday: "short", day: "numeric", month: "short" })}
                             </span>
                           )}
                           {f.venue && <div style={{ fontSize: "0.65rem", color: "var(--muted)", marginTop: 2 }}>{f.venue}</div>}
