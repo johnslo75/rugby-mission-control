@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Bust the fixtures page cache so changes appear immediately
-  revalidateTag("weekend-scores", "");
+  revalidateTag("weekend-scores");
 
   // Return combined (ESPN + manual), deduped by ID
   const allById = new Map<string, Score>();
