@@ -4,49 +4,49 @@ import { getTeamLogo } from "./team-logos";
 
 // ─── Competition config ────────────────────────────────────────────────────────
 
+// DB competition names must match ESPN values stored in the scores table
 const COMPETITION_CONFIG: Record<string, {
-  // The World Rugby API ignores eventIds server-side — we filter client-side by competition label
-  competitionLabels: string[];
+  dbCompetitionNames: string[];
   wikipediaUrl: string | null;
 }> = {
   "six-nations": {
-    competitionLabels: ["Six Nations"],
+    dbCompetitionNames: ["Six Nations"],
     wikipediaUrl: "https://en.wikipedia.org/wiki/2026_Six_Nations_Championship",
   },
   "urc": {
-    competitionLabels: ["United Rugby Championship"],
+    dbCompetitionNames: ["United Rugby Championship"],
     wikipediaUrl: "https://en.wikipedia.org/wiki/2025-26_United_Rugby_Championship",
   },
   "champions-cup": {
-    competitionLabels: ["Champions Cup", "European Rugby Champions Cup", "Investec Champions Cup"],
+    dbCompetitionNames: ["European Champions Cup"],
     wikipediaUrl: "https://en.wikipedia.org/wiki/2025-26_European_Rugby_Champions_Cup",
   },
   "challenge-cup": {
-    competitionLabels: ["Challenge Cup", "European Rugby Challenge Cup", "EPCR Challenge Cup"],
+    dbCompetitionNames: [],
     wikipediaUrl: "https://en.wikipedia.org/wiki/2025-26_European_Rugby_Challenge_Cup",
   },
   "premiership": {
-    competitionLabels: ["Gallagher Premiership", "Premiership Rugby", "PREM Rugby"],
+    dbCompetitionNames: ["Gallagher Premiership"],
     wikipediaUrl: "https://en.wikipedia.org/wiki/2025%E2%80%9326_Premiership_Rugby",
   },
   "top-14": {
-    competitionLabels: ["Top 14"],
+    dbCompetitionNames: ["French Top 14"],
     wikipediaUrl: "https://en.wikipedia.org/wiki/2025-26_Top_14_season",
   },
   "super-rugby-pacific": {
-    competitionLabels: ["Super Rugby"],
+    dbCompetitionNames: ["Super Rugby Pacific"],
     wikipediaUrl: "https://en.wikipedia.org/wiki/2026_Super_Rugby_Pacific_season",
   },
   "rugby-championship": {
-    competitionLabels: ["Rugby Championship", "The Rugby Championship"],
+    dbCompetitionNames: ["Rugby Championship", "International Test Match"],
     wikipediaUrl: "https://en.wikipedia.org/wiki/2026_Rugby_Championship",
   },
   "world-cup-2027": {
-    competitionLabels: [],
+    dbCompetitionNames: [],
     wikipediaUrl: "https://en.wikipedia.org/wiki/2027_Rugby_World_Cup",
   },
   "emerging-nations": {
-    competitionLabels: [],
+    dbCompetitionNames: [],
     wikipediaUrl: null,
   },
 };
@@ -80,11 +80,13 @@ export interface StandingRow {
   pts: number;
 }
 
-// ─── Fetch fixtures from World Rugby API ───────────────────────────────────────
-// Note: the API ignores eventIds server-side — we filter client-side by competition label
+// ─── Fetch fixtures from ESPN scores DB ───────────────────────────────────────
+// Uses the same DB that powers the fixtures page — populated by ESPN via cron job
 
-async function fetchFixtures(competitionLabels: string[]): Promise<Fixture[]> {
-  if (!competitionLabels.length) return [];
+import pool from "./db";
+
+async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
+  if (!dbCompetitionNames.length) return [];
   try {
     const today = new Date();
     const past = new Date(today);
@@ -92,53 +94,31 @@ async function fetchFixtures(competitionLabels: string[]): Promise<Fixture[]> {
     const future = new Date(today);
     future.setDate(today.getDate() + 21);
 
-    const url = `https://api.wr-rims-prod.pulselive.com/rugby/v3/match?language=en&sort=asc&pageSize=200&sport=mru&startDate=${past.toISOString().slice(0, 10)}&endDate=${future.toISOString().slice(0, 10)}`;
+    const placeholders = dbCompetitionNames.map((_, i) => `$${i + 3}`).join(", ");
+    const { rows } = await pool.query(
+      `SELECT * FROM scores
+       WHERE match_date >= $1 AND match_date <= $2
+         AND competition = ANY(ARRAY[${placeholders}])
+       ORDER BY match_date ASC`,
+      [past.toISOString().slice(0, 10), future.toISOString().slice(0, 10), ...dbCompetitionNames]
+    );
 
-    const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" },
-      cache: "no-store",
+    return rows.map((r) => {
+      const isCompleted = r.home_score !== null && r.away_score !== null;
+      const isLive = r.status === "Live" || r.status === "live";
+      return {
+        id: r.id,
+        homeTeam: r.home_team,
+        awayTeam: r.away_team,
+        homeLogo: getTeamLogo(r.home_team),
+        awayLogo: getTeamLogo(r.away_team),
+        homeScore: isCompleted ? r.home_score : null,
+        awayScore: isCompleted ? r.away_score : null,
+        date: r.match_date,
+        venue: "",
+        status: isLive ? "live" : isCompleted ? "completed" : "scheduled",
+      };
     });
-
-    if (!res.ok) return [];
-
-    const data = await res.json() as { content?: unknown[] };
-    const matches = (data.content || []) as Record<string, unknown>[];
-
-    const labelsLower = competitionLabels.map((l) => l.toLowerCase());
-
-    return matches
-      .filter((m) => {
-        const teams = m.teams as { name: string }[] | undefined;
-        if (!teams || teams.length < 2) return false;
-        // Filter by competition label string (top-level field in API response)
-        const compLabel = ((m.competition as string) || "").toLowerCase();
-        return labelsLower.some((l) => compLabel.includes(l));
-      })
-      .map((m) => {
-        const teams = m.teams as { name: string; score?: number }[];
-        const scores = m.scores as number[] | undefined;
-        const dateStr = ((m.time as Record<string, unknown>)?.label as string) || (m.date as string) || "";
-        const venue = ((m.venue as Record<string, unknown>)?.name as string) || "";
-        const statusRaw = (m.status as string) || "";
-        const status: Fixture["status"] =
-          statusRaw === "C" ? "completed" :
-          statusRaw === "L" ? "live" : "scheduled";
-
-        const homeTeam = teams[0]?.name || "TBC";
-        const awayTeam = teams[1]?.name || "TBC";
-        return {
-          id: String(m.matchId || m.id || Math.random()),
-          homeTeam,
-          awayTeam,
-          homeLogo: getTeamLogo(homeTeam),
-          awayLogo: getTeamLogo(awayTeam),
-          homeScore: status !== "scheduled" ? (scores?.[0] ?? 0) : null,
-          awayScore: status !== "scheduled" ? (scores?.[1] ?? 0) : null,
-          date: dateStr,
-          venue,
-          status,
-        };
-      });
   } catch (e) {
     console.error("Fixtures fetch error:", e);
     return [];
@@ -206,8 +186,8 @@ async function scrapeStandings(wikiUrl: string): Promise<StandingRow[]> {
 
 const getCachedFixtures = unstable_cache(
   fetchFixtures,
-  ["wr-fixtures-v6"],
-  { revalidate: 1800 }  // 30 minutes
+  ["espn-fixtures-v1"],
+  { revalidate: 300 }  // 5 minutes — same as scores page
 );
 
 const getCachedStandings = unstable_cache(
@@ -221,7 +201,7 @@ export async function getCompetitionData(slug: string): Promise<{ fixtures: Fixt
   if (!config) return { fixtures: [], standings: [] };
 
   const [fixtures, standings] = await Promise.all([
-    config.competitionLabels.length ? getCachedFixtures(config.competitionLabels) : Promise.resolve([]),
+    config.dbCompetitionNames.length ? getCachedFixtures(config.dbCompetitionNames) : Promise.resolve([]),
     config.wikipediaUrl ? getCachedStandings(config.wikipediaUrl) : Promise.resolve([]),
   ]);
 
