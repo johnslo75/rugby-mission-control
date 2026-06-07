@@ -26,7 +26,7 @@ const COMPETITION_CONFIG: Record<string, {
   },
   "premiership": {
     worldRugbyEventId: "65f66693-9ccb-4784-bc3c-7b5b3cabecc3",
-    wikipediaUrl: "https://en.wikipedia.org/wiki/2025-26_Premiership_Rugby_season",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/2025%E2%80%9326_Premiership_Rugby",
   },
   "top-14": {
     worldRugbyEventId: "d72547e0-d76e-4612-9f1c-a3f60d320074",
@@ -208,7 +208,7 @@ const getCachedFixtures = unstable_cache(
 
 const getCachedStandings = unstable_cache(
   scrapeStandings,
-  ["wiki-standings-v5"],
+  ["wiki-standings-v6"],
   { revalidate: 3600 }  // 1 hour
 );
 
