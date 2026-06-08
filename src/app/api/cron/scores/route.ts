@@ -13,10 +13,12 @@ export async function GET(req: NextRequest) {
   const baseUrl = process.env.NEXTAUTH_URL || "https://hub.rugbyradar.co";
   const res = await fetch(`${baseUrl}/api/scores?refresh=1`, {
     headers: { "Cache-Control": "no-cache" },
+    signal: AbortSignal.timeout(25000), // 25s — cron-job.org times out at 30s
   });
 
   if (!res.ok) {
-    return NextResponse.json({ error: "ESPN fetch failed" }, { status: 500 });
+    const text = await res.text().catch(() => "");
+    return NextResponse.json({ error: `ESPN fetch failed: ${res.status} ${text.slice(0, 200)}` }, { status: 500 });
   }
 
   const scores = await res.json() as unknown[];

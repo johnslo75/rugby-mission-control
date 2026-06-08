@@ -128,17 +128,15 @@ export async function GET(req: NextRequest) {
     return d >= weekStart && d <= weekEnd;
   });
 
-  // Upsert ESPN scores into DB
-  for (const s of espnFlat) {
-    await pool.query(`
-      INSERT INTO scores (id, competition, home_team, away_team, home_score, away_score, match_date, status, source)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-      ON CONFLICT (id) DO UPDATE SET
-        home_score=EXCLUDED.home_score, away_score=EXCLUDED.away_score,
-        status=EXCLUDED.status
-    `, [s.id, s.competition, s.homeTeam, s.awayTeam, s.homeScore, s.awayScore,
-        s.matchDate.slice(0, 10), s.status, s.source]);
-  }
+  // Upsert ESPN scores into DB (parallel)
+  await Promise.all(espnFlat.map((s) => pool.query(`
+    INSERT INTO scores (id, competition, home_team, away_team, home_score, away_score, match_date, status, source)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    ON CONFLICT (id) DO UPDATE SET
+      home_score=EXCLUDED.home_score, away_score=EXCLUDED.away_score,
+      status=EXCLUDED.status
+  `, [s.id, s.competition, s.homeTeam, s.awayTeam, s.homeScore, s.awayScore,
+      s.matchDate.slice(0, 10), s.status, s.source])));
 
   // Return combined (ESPN + manual), deduped by ID
   const allById = new Map<string, Score>();
