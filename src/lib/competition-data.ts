@@ -93,14 +93,14 @@ async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
   const future = new Date(today);
   future.setDate(today.getDate() + 30); // 30 days forward
 
-  // Use $3 = ANY($3::text[]) — cleaner and avoids dynamic placeholder building
+  const placeholders = dbCompetitionNames.map((_, i) => `$${i + 3}`).join(", ");
   const { rows } = await pool.query(
     `SELECT * FROM scores
      WHERE match_date >= $1
        AND match_date <= $2
-       AND competition = ANY($3::text[])
+       AND competition IN (${placeholders})
      ORDER BY match_date ASC`,
-    [past.toISOString().slice(0, 10), future.toISOString().slice(0, 10), dbCompetitionNames]
+    [past.toISOString().slice(0, 10), future.toISOString().slice(0, 10), ...dbCompetitionNames]
   );
 
   return rows.map((r) => {
