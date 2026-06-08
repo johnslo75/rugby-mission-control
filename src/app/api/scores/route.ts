@@ -77,71 +77,75 @@ async function fetchESPN(leagueId: number, leagueName: string, dateFrom: Date, d
 
 // GET — fetch from ESPN + manual entries from DB
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const refresh = searchParams.get("refresh") === "1";
-  const dateParam = searchParams.get("date"); // YYYY-MM-DD, defaults to this weekend
+  try {
+    const { searchParams } = new URL(req.url);
+    const refresh = searchParams.get("refresh") === "1";
+    const dateParam = searchParams.get("date");
 
-  // Rolling 10-day window: 3 days back + 7 days forward
-  // This catches recent results AND upcoming fixtures
-  const now = new Date();
-  const windowStart = new Date(now);
-  windowStart.setDate(now.getDate() - 3);
-  windowStart.setHours(0, 0, 0, 0);
-  const windowEnd = new Date(now);
-  windowEnd.setDate(now.getDate() + 7);
-  windowEnd.setHours(23, 59, 59, 999);
+    const now = new Date();
+    const windowStart = new Date(now);
+    windowStart.setDate(now.getDate() - 3);
+    windowStart.setHours(0, 0, 0, 0);
+    const windowEnd = new Date(now);
+    windowEnd.setDate(now.getDate() + 7);
+    windowEnd.setHours(23, 59, 59, 999);
 
-  const weekStart = dateParam ? new Date(dateParam + "T00:00:00Z") : windowStart;
-  const weekEnd = dateParam
-    ? new Date(new Date(dateParam).getTime() + 10 * 86400000)
-    : windowEnd;
+    const weekStart = dateParam ? new Date(dateParam + "T00:00:00Z") : windowStart;
+    const weekEnd = dateParam
+      ? new Date(new Date(dateParam).getTime() + 10 * 86400000)
+      : windowEnd;
 
-  // Fetch manual DB scores for this window
-  const { rows: dbScores } = await pool.query(
-    `SELECT * FROM scores WHERE match_date >= $1 AND match_date <= $2 ORDER BY competition, match_date`,
-    [weekStart.toISOString().slice(0, 10), weekEnd.toISOString().slice(0, 10)]
-  );
+    // Fetch DB scores for this window
+    const { rows: dbScores } = await pool.query(
+      `SELECT * FROM scores WHERE match_date >= $1 AND match_date <= $2 ORDER BY competition, match_date`,
+      [weekStart.toISOString().slice(0, 10), weekEnd.toISOString().slice(0, 10)]
+    );
 
-  const manual: Score[] = dbScores.map((r) => ({
-    id: r.id,
-    competition: r.competition,
-    homeTeam: r.home_team,
-    awayTeam: r.away_team,
-    homeScore: r.home_score,
-    awayScore: r.away_score,
-    matchDate: r.match_date,
-    status: r.status,
-    source: r.source,
-  }));
+    const manual: Score[] = dbScores.map((r) => ({
+      id: r.id,
+      competition: r.competition,
+      homeTeam: r.home_team,
+      awayTeam: r.away_team,
+      homeScore: r.home_score,
+      awayScore: r.away_score,
+      matchDate: r.match_date,
+      status: r.status,
+      source: r.source,
+    }));
 
-  if (!refresh) {
-    // Return DB scores only (fast)
-    return NextResponse.json(manual);
+    if (!refresh) {
+      return NextResponse.json(manual);
+    }
+
+    // Fetch live from ESPN in parallel
+    const espnResults = await Promise.all(
+      LEAGUES.map((l) => fetchESPN(l.id, l.name, weekStart, weekEnd))
+    );
+    const espnFlat = espnResults.flat().filter((s) => {
+      const d = new Date(s.matchDate);
+      return d >= weekStart && d <= weekEnd;
+    });
+
+    // Upsert ESPN scores into DB (parallel, ignore individual failures)
+    await Promise.allSettled(espnFlat.map((s) => pool.query(`
+      INSERT INTO scores (id, competition, home_team, away_team, home_score, away_score, match_date, status, source)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      ON CONFLICT (id) DO UPDATE SET
+        home_score=EXCLUDED.home_score, away_score=EXCLUDED.away_score,
+        status=EXCLUDED.status
+    `, [s.id, s.competition, s.homeTeam, s.awayTeam, s.homeScore, s.awayScore,
+        s.matchDate.slice(0, 10), s.status, s.source])));
+
+    // Return combined (ESPN + manual), deduped by ID
+    const allById = new Map<string, Score>();
+    for (const s of [...espnFlat, ...manual]) allById.set(s.id, s);
+    return NextResponse.json(Array.from(allById.values()));
+
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Scores GET error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  // Fetch live from ESPN in parallel, passing the explicit date window
-  const espnResults = await Promise.all(
-    LEAGUES.map((l) => fetchESPN(l.id, l.name, weekStart, weekEnd))
-  );
-  const espnFlat = espnResults.flat().filter((s) => {
-    const d = new Date(s.matchDate);
-    return d >= weekStart && d <= weekEnd;
-  });
-
-  // Upsert ESPN scores into DB (parallel)
-  await Promise.all(espnFlat.map((s) => pool.query(`
-    INSERT INTO scores (id, competition, home_team, away_team, home_score, away_score, match_date, status, source)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-    ON CONFLICT (id) DO UPDATE SET
-      home_score=EXCLUDED.home_score, away_score=EXCLUDED.away_score,
-      status=EXCLUDED.status
-  `, [s.id, s.competition, s.homeTeam, s.awayTeam, s.homeScore, s.awayScore,
-      s.matchDate.slice(0, 10), s.status, s.source])));
-
-  // Return combined (ESPN + manual), deduped by ID
-  const allById = new Map<string, Score>();
-  for (const s of [...espnFlat, ...manual]) allById.set(s.id, s);
-  return NextResponse.json(Array.from(allById.values()));
 }
 
 // POST — add a manual score
