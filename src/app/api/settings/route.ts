@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
   const { rows } = await pool.query("SELECT key, value FROM settings");
@@ -11,6 +12,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const body = await req.json();
   for (const [key, value] of Object.entries(body)) {
     await pool.query(`

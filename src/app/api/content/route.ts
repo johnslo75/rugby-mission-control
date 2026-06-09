@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
   const { rows } = await pool.query("SELECT * FROM content_ideas ORDER BY created_at DESC");
@@ -14,6 +15,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const body = await req.json();
   const id = Date.now().toString();
   await pool.query(`
@@ -36,6 +39,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const body = await req.json();
   await pool.query(`
     UPDATE content_ideas SET
@@ -58,6 +63,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   await pool.query("DELETE FROM content_ideas WHERE id=$1", [id]);

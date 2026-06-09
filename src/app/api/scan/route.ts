@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import pool from "@/lib/db";
+import { requireAuth } from "@/lib/api-auth";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -333,6 +334,8 @@ export async function runScanPipeline(): Promise<ScanResult> {
 // ─── Route handlers ───────────────────────────────────────────────────────────
 
 export async function POST() {
+  const denied = await requireAuth();
+  if (denied) return denied;
   try {
     const result = await runScanPipeline();
     return NextResponse.json(result);

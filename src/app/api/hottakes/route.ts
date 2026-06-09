@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
   const { rows } = await pool.query(
@@ -11,6 +12,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { text, source } = await req.json() as { text: string; source: string };
   const id = Date.now().toString();
   await pool.query(
@@ -21,6 +24,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { id, text, source, active } = await req.json() as { id: string; text: string; source: string; active: boolean };
   // If activating this one, deactivate all others first
   if (active) await pool.query("UPDATE hottakes SET active = false");
@@ -32,6 +37,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const id = req.nextUrl.searchParams.get("id");
   await pool.query("DELETE FROM hottakes WHERE id=$1", [id]);
   return NextResponse.json({ ok: true });

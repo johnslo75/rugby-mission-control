@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
   const today = new Date().toISOString().slice(0, 10);
@@ -11,6 +12,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const body = await req.json() as { date: string; checked: Record<string, boolean> };
   await pool.query(`
     INSERT INTO checklist (date, checked, saved_at) VALUES ($1,$2,NOW())

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { requireAuth } from "@/lib/api-auth";
 
 export interface Score {
   id: string;
@@ -150,6 +151,8 @@ export async function GET(req: NextRequest) {
 
 // POST — add a manual score
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const body = await req.json() as Omit<Score, "id" | "source">;
   const id = `manual-${Date.now()}`;
   await pool.query(`
@@ -163,6 +166,8 @@ export async function POST(req: NextRequest) {
 
 // DELETE — remove a manual score
 export async function DELETE(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   await pool.query("DELETE FROM scores WHERE id=$1 AND source='manual'", [id]);

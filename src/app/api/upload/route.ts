@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { requireAuth } from "@/lib/api-auth";
 
 const r2 = new S3Client({
   region: "auto",
@@ -14,6 +15,8 @@ const BUCKET = "rugbyradar-images";
 const PUBLIC_URL = "https://images.rugbyradar.co";
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

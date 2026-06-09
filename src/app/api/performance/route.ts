@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
   const { rows } = await pool.query("SELECT * FROM performance ORDER BY date DESC");
@@ -11,6 +12,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const body = await req.json();
   const id = Date.now().toString();
   await pool.query(`
@@ -21,6 +24,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const body = await req.json();
   await pool.query(`
     UPDATE performance SET date=$2, platform=$3, best_hook=$4, views=$5, likes=$6, followers_gained=$7, notes=$8
@@ -30,6 +35,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   await pool.query("DELETE FROM performance WHERE id=$1", [searchParams.get("id")]);
   return NextResponse.json({ ok: true });

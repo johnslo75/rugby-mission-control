@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { invalidate } from "@/lib/cache";
 import { revalidateTag } from "next/cache";
+import { requireAuth } from "@/lib/api-auth";
 
 // Wrap any DB call with a hard 10s timeout
 function withTimeout<T>(promise: Promise<T>, ms = 10000): Promise<T> {
@@ -89,6 +90,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   try {
     const body = (await req.json()) as Omit<Story, "id"> & { slug?: string };
     const id = Date.now().toString();
@@ -113,6 +116,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   try {
     const body = (await req.json()) as Story;
     await withTimeout(pool.query(`
@@ -138,6 +143,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   await pool.query("DELETE FROM stories WHERE id=$1", [id]);
