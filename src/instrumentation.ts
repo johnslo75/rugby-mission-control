@@ -13,7 +13,23 @@ export async function register() {
       }
     }, 2000);
 
+    // Refresh scores shortly after startup so a deploy never serves stale
+    // fixtures, then every 15 minutes. This runs in-process — the external
+    // cron-job.org trigger on /api/cron/scores is redundancy, not the owner.
+    const runScoresRefresh = async (label: string) => {
+      try {
+        const { refreshScores } = await import("./lib/scores-refresh");
+        await refreshScores();
+      } catch (err) {
+        console.error(`[Cron] Scores refresh (${label}) failed:`, err);
+      }
+    };
+    setTimeout(() => runScoresRefresh("startup"), 5000);
+
     const cron = await import("node-cron");
+
+    cron.default.schedule("*/15 * * * *", () => runScoresRefresh("15min"));
+    console.log("[Cron] Scores refresh scheduled every 15 minutes.");
 
     // Schedule daily scan at 7:00 AM UTC
     cron.default.schedule("0 7 * * *", async () => {
