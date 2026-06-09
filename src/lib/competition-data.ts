@@ -133,6 +133,7 @@ async function scrapeStandings(wikiUrl: string): Promise<StandingRow[]> {
   const res = await fetch(wikiUrl, {
     headers: { "User-Agent": "Mozilla/5.0", Accept: "text/html" },
     cache: "no-store",
+    signal: AbortSignal.timeout(3000),
   });
 
   if (!res.ok) throw new Error(`Wikipedia returned ${res.status}`);

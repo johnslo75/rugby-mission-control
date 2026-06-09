@@ -8,7 +8,7 @@ import { getAllStories, readTime, formatDate } from "../../../components/utils";
 import { COMPETITION_MAP } from "@/lib/competitions";
 import type { Story } from "../../../../api/stories/route";
 
-export const revalidate = 120; // rebuild every 2 minutes
+export const dynamic = "force-dynamic";
 
 export default async function EvergreePage({ params }: { params: Promise<{ slug: string; topic: string }> }) {
   const { slug, topic } = await params;

@@ -6,7 +6,7 @@ import { COMPETITIONS } from "@/lib/competitions";
 import { getAllFixtures } from "../components/utils";
 import type { Score } from "../../api/scores/route";
 
-export const revalidate = 120; // rebuild every 2 minutes
+export const dynamic = "force-dynamic";
 
 // Map competition names from scores DB to our competition slugs/colors
 const COMP_META: Record<string, { slug: string; color: string }> = {

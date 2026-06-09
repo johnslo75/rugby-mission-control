@@ -2,7 +2,7 @@ import Link from "next/link";
 import pool from "@/lib/db";
 import { cached } from "@/lib/cache";
 
-export const revalidate = 120; // rebuild page every 2 minutes
+export const dynamic = "force-dynamic";
 import TopBar from "./components/TopBar";
 import SiteHeader from "./components/SiteHeader";
 import BreakingTicker from "./components/BreakingTicker";

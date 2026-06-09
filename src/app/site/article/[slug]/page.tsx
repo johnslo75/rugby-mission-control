@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-export const revalidate = 120; // rebuild every 2 minutes
+export const dynamic = "force-dynamic";
 import TopBar from "../../components/TopBar";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
