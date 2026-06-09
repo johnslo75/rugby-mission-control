@@ -3,7 +3,8 @@ import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { getTeamLogo, teamInitials } from "@/lib/team-logos";
 import { COMPETITIONS } from "@/lib/competitions";
-import { getAllFixtures } from "../components/utils";
+import { getFixtures } from "@/lib/fixtures";
+import { getLastScoresRefresh } from "@/lib/scores-refresh";
 import type { Score } from "../../api/scores/route";
 
 export const dynamic = "force-dynamic";
@@ -35,9 +36,23 @@ function TeamCell({ name, align }: { name: string; align: "left" | "right" }) {
   );
 }
 
+function timeAgo(when: string | number): string {
+  const mins = Math.round((Date.now() - new Date(when).getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 export default async function FixturesPage() {
   // Pull from scores DB — this includes both results and upcoming fixtures
-  const allScores = await getAllFixtures() as (Score & { match_date?: string })[];
+  const { scores: allScores, updatedAt, stale, error } = await getFixtures({
+    daysBack: 7,
+    daysForward: 30,
+    ttlSeconds: 300,
+  });
+  const lastRefresh = await getLastScoresRefresh();
 
   const today = new Date().toISOString().slice(0, 10);
   const threeDaysAgo = new Date();
@@ -73,6 +88,12 @@ export default async function FixturesPage() {
   const isCompleted = (s: Score) => s.status === "FT" || s.status === "Final" || (s.homeScore !== null && s.awayScore !== null);
   const isLive = (s: Score) => s.status === "Live" || s.status === "live";
 
+  if (sortedDates.length === 0) {
+    console.warn(
+      `[fixtures-page] rendering empty: error=${error} stale=${stale} rawCount=${allScores.length} lastRefresh=${lastRefresh?.at ?? "never"}`
+    );
+  }
+
   return (
     <>
       <TopBar />
@@ -83,10 +104,28 @@ export default async function FixturesPage() {
           Fixtures & Results
         </h1>
         <p className="font-archivo-narrow" style={{ color: "var(--muted)", marginBottom: 32, fontSize: "0.9rem" }}>
-          All competitions · updates every 5 minutes
+          All competitions{lastRefresh ? ` · scores updated ${timeAgo(lastRefresh.at)}` : " · updates every 15 minutes"}
         </p>
 
-        {sortedDates.length === 0 && (
+        {stale && updatedAt && (
+          <div style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: "var(--radius)", padding: "10px 16px", marginBottom: 24 }}>
+            <p className="font-archivo-narrow" style={{ fontSize: "0.82rem", color: "#92400e" }}>
+              ⚠️ Live updates are interrupted — showing fixtures saved {timeAgo(updatedAt)}.
+            </p>
+          </div>
+        )}
+
+        {sortedDates.length === 0 && error && (
+          <div style={{ textAlign: "center", padding: "60px 0", color: "var(--muted)" }}>
+            <p style={{ fontSize: "2rem", marginBottom: 12 }}>⚠️</p>
+            <p className="font-archivo" style={{ fontWeight: 700 }}>Fixtures are temporarily unavailable</p>
+            <p className="font-archivo-narrow" style={{ fontSize: "0.85rem", marginTop: 8 }}>
+              We&apos;re having trouble loading match data — please try again in a few minutes.
+            </p>
+          </div>
+        )}
+
+        {sortedDates.length === 0 && !error && (
           <div style={{ textAlign: "center", padding: "60px 0", color: "var(--muted)" }}>
             <p style={{ fontSize: "2rem", marginBottom: 12 }}>📅</p>
             <p className="font-archivo" style={{ fontWeight: 700 }}>No fixtures available right now</p>

@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import { getTeamLogo } from "./team-logos";
-import pool from "./db";
 import { cached } from "./cache";
+import { getFixtures } from "./fixtures";
 
 // ─── Competition config ────────────────────────────────────────────────────────
 
@@ -81,50 +81,35 @@ export interface StandingRow {
   pts: number;
 }
 
-// ─── Fixtures: direct DB query, no cache layer ────────────────────────────────
+// ─── Fixtures: shared query module (src/lib/fixtures.ts) ──────────────────────
 // Wide window so results survive if cron misses a run or two
 
-async function fetchFixturesFromDB(dbCompetitionNames: string[]): Promise<Fixture[]> {
+async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
   if (!dbCompetitionNames.length) return [];
 
-  const today = new Date();
-  const past = new Date(today);
-  past.setDate(today.getDate() - 30);   // 30 days back
-  const future = new Date(today);
-  future.setDate(today.getDate() + 30); // 30 days forward
+  const { scores } = await getFixtures({
+    daysBack: 30,
+    daysForward: 30,
+    competitions: dbCompetitionNames,
+    ttlSeconds: 120,
+  });
 
-  const placeholders = dbCompetitionNames.map((_, i) => `$${i + 3}`).join(", ");
-  const { rows } = await pool.query(
-    `SELECT * FROM scores
-     WHERE match_date >= $1
-       AND match_date <= $2
-       AND competition IN (${placeholders})
-     ORDER BY match_date ASC`,
-    [past.toISOString().slice(0, 10), future.toISOString().slice(0, 10), ...dbCompetitionNames]
-  );
-
-  return rows.map((r) => {
-    const isCompleted = r.home_score !== null && r.away_score !== null;
-    const isLive = r.status === "Live" || r.status === "live";
+  return scores.map((s) => {
+    const isCompleted = s.homeScore !== null && s.awayScore !== null;
+    const isLive = s.status === "Live" || s.status === "live";
     return {
-      id: r.id,
-      homeTeam: r.home_team,
-      awayTeam: r.away_team,
-      homeLogo: getTeamLogo(r.home_team),
-      awayLogo: getTeamLogo(r.away_team),
-      homeScore: isCompleted ? r.home_score : null,
-      awayScore: isCompleted ? r.away_score : null,
-      date: r.match_date,
+      id: s.id,
+      homeTeam: s.homeTeam,
+      awayTeam: s.awayTeam,
+      homeLogo: getTeamLogo(s.homeTeam),
+      awayLogo: getTeamLogo(s.awayTeam),
+      homeScore: isCompleted ? s.homeScore : null,
+      awayScore: isCompleted ? s.awayScore : null,
+      date: s.matchDate,
       venue: "",
       status: isLive ? "live" : isCompleted ? "completed" : "scheduled",
     };
   });
-}
-
-async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
-  if (!dbCompetitionNames.length) return [];
-  const cacheKey = `fixtures-${dbCompetitionNames.join(",")}`;
-  return cached(cacheKey, 120, () => fetchFixturesFromDB(dbCompetitionNames));
 }
 
 // ─── Standings: in-memory cache (1 hour TTL, returns stale on error) ──────────
