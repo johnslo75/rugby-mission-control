@@ -12,7 +12,7 @@ import { getCompetitionData } from "@/lib/competition-data";
 import type { Fixture, StandingRow } from "@/lib/competition-data";
 import { teamInitials } from "@/lib/team-logos";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120; // rebuild every 2 minutes
 
 type StoryExt = Story & { imageUrl?: string; imageBg?: string; imageEmoji?: string; competitions?: string[] };
 
