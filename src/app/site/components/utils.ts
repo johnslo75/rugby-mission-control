@@ -64,7 +64,7 @@ export async function getAllFixtures(): Promise<Score[]> {
 
 // All published stories
 export async function getAllStories(): Promise<Story[]> {
-  return cached("all-stories", 30, async () => {
+  return cached("all-stories", 300, async () => {
     const { rows } = await pool.query(
       "SELECT * FROM stories WHERE published=true ORDER BY date DESC"
     );

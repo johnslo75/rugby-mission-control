@@ -84,7 +84,7 @@ export interface StandingRow {
 // ─── Fixtures: direct DB query, no cache layer ────────────────────────────────
 // Wide window so results survive if cron misses a run or two
 
-async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
+async function fetchFixturesFromDB(dbCompetitionNames: string[]): Promise<Fixture[]> {
   if (!dbCompetitionNames.length) return [];
 
   const today = new Date();
@@ -119,6 +119,12 @@ async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
       status: isLive ? "live" : isCompleted ? "completed" : "scheduled",
     };
   });
+}
+
+async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
+  if (!dbCompetitionNames.length) return [];
+  const cacheKey = `fixtures-${dbCompetitionNames.join(",")}`;
+  return cached(cacheKey, 120, () => fetchFixturesFromDB(dbCompetitionNames));
 }
 
 // ─── Standings: in-memory cache (1 hour TTL, returns stale on error) ──────────

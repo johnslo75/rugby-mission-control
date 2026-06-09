@@ -12,7 +12,7 @@ function getPool(): Pool {
       max: 10,
       idleTimeoutMillis: 10000,
       connectionTimeoutMillis: 8000,
-      statement_timeout: 10000,
+      statement_timeout: 5000,
     });
   }
   return pool;
