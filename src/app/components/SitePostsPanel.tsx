@@ -265,28 +265,49 @@ export default function SitePostsPanel() {
 
   async function togglePublish(story: Story) {
     const updated = { ...story, published: !story.published };
-    await fetch("/api/stories", {
+    const res = await fetch("/api/stories", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated),
     });
+    if (!res.ok) {
+      alert(`Failed to update story (${res.status}) — change not saved.`);
+      return;
+    }
     setStories((prev) => prev.map((s) => (s.id === story.id ? updated : s)));
   }
 
   async function remove(id: string) {
     if (!confirm("Delete this story from the site?")) return;
-    await fetch(`/api/stories?id=${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/stories?id=${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert(`Failed to delete story (${res.status}).`);
+      return;
+    }
     setStories((prev) => prev.filter((s) => s.id !== id));
   }
 
   async function toggleFeatured(story: Story) {
     const updated = { ...story, featured: !story.featured };
-    await fetch("/api/stories", {
+    const res = await fetch("/api/stories", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated),
     });
-    setStories((prev) => prev.map((s) => (s.id === story.id ? updated : s)));
+    if (!res.ok) {
+      alert(`Failed to update featured story (${res.status}) — change not saved.`);
+      return;
+    }
+    // Server keeps a single featured story — mirror that locally
+    setStories((prev) =>
+      prev.map((s) =>
+        s.id === story.id
+          ? updated
+          : updated.featured && s.featured
+            ? { ...s, featured: false }
+            : s
+      )
+    );
   }
 
   function handleSave(updated: Story) {

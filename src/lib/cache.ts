@@ -19,8 +19,16 @@ export interface CacheResult<T> {
   stale: boolean;
 }
 
-const store = new Map<string, CacheEntry<unknown>>();
-const inflight = new Map<string, Promise<unknown>>();
+// Anchored on globalThis: Next.js bundles route handlers and pages into
+// separate chunks, each with its own copy of this module. Module-level Maps
+// would give each copy a private cache, so invalidate() from an API route
+// would never clear what a page reads.
+const g = globalThis as typeof globalThis & {
+  __rrCacheStore?: Map<string, CacheEntry<unknown>>;
+  __rrCacheInflight?: Map<string, Promise<unknown>>;
+};
+const store = (g.__rrCacheStore ??= new Map());
+const inflight = (g.__rrCacheInflight ??= new Map());
 
 function startFetch<T>(key: string, ttlSeconds: number, fetcher: () => Promise<T>): Promise<T> {
   const promise = fetcher()

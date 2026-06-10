@@ -106,6 +106,12 @@ export async function POST(req: NextRequest) {
       body.featured || false, body.viralScore || null, body.matchInfo || null,
       true, body.tags || [], body.competitions || [], body.isPriority || false,
     ]));
+    if (body.featured) {
+      await withTimeout(pool.query(
+        "UPDATE stories SET featured=false WHERE featured=true AND id<>$1",
+        [id]
+      ));
+    }
     const { rows } = await pool.query("SELECT * FROM stories WHERE id=$1", [id]);
     invalidate("all-stories"); revalidateTag("all-stories", "");
     return NextResponse.json(rowToStory(rows[0]));
@@ -134,6 +140,13 @@ export async function PUT(req: NextRequest) {
       body.published || false, body.tags || [],
       body.competitions || [], body.isPriority || false,
     ]));
+    // Only one story drives the homepage hero — featuring one unfeatures the rest
+    if (body.featured) {
+      await withTimeout(pool.query(
+        "UPDATE stories SET featured=false WHERE featured=true AND id<>$1",
+        [body.id]
+      ));
+    }
     invalidate("all-stories"); revalidateTag("all-stories", "");
     return NextResponse.json(body);
   } catch (err) {
