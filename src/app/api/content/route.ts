@@ -3,6 +3,8 @@ import pool from "@/lib/db";
 import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { rows } = await pool.query("SELECT * FROM content_ideas ORDER BY created_at DESC");
   return NextResponse.json(rows.map((r) => ({
     id: r.id, title: r.title, hook: r.hook, script: r.script,

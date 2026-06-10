@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { rows } = await pool.query(
     "SELECT * FROM scans WHERE created_at > $1 ORDER BY created_at DESC",

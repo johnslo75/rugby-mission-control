@@ -17,6 +17,8 @@ export interface Score {
 
 // GET — scores from DB; ?refresh=1 (hub only) pulls from ESPN first
 export async function GET(req: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   try {
     const { searchParams } = new URL(req.url);
     const refresh = searchParams.get("refresh") === "1";

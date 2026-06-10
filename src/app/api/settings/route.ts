@@ -3,6 +3,8 @@ import pool from "@/lib/db";
 import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { rows } = await pool.query("SELECT key, value FROM settings");
   const settings: Record<string, unknown> = {};
   for (const r of rows) {

@@ -3,6 +3,8 @@ import pool from "@/lib/db";
 import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { rows } = await pool.query(
     "SELECT * FROM hottakes ORDER BY CASE WHEN active THEN 0 ELSE 1 END, date DESC"
   );

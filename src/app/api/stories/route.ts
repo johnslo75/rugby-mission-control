@@ -74,7 +74,13 @@ export async function GET(req: NextRequest) {
 
   if (slug) {
     const { rows } = await pool.query("SELECT * FROM stories WHERE slug=$1", [slug]);
-    return NextResponse.json(rows[0] ? rowToStory(rows[0]) : null);
+    const story = rows[0] ? rowToStory(rows[0]) : null;
+    // Unpublished stories are hub-only
+    if (story && !story.published) {
+      const denied = await requireAuth();
+      if (denied) return denied;
+    }
+    return NextResponse.json(story);
   }
   if (category) {
     const { rows } = await pool.query(
@@ -83,9 +89,14 @@ export async function GET(req: NextRequest) {
     );
     return NextResponse.json(rows.map(rowToStory));
   }
-  const { rows } = all
-    ? await pool.query("SELECT * FROM stories ORDER BY date DESC")
-    : await pool.query("SELECT * FROM stories WHERE published=true ORDER BY date DESC");
+  if (all) {
+    // Includes drafts — hub-only
+    const denied = await requireAuth();
+    if (denied) return denied;
+    const { rows } = await pool.query("SELECT * FROM stories ORDER BY date DESC");
+    return NextResponse.json(rows.map(rowToStory));
+  }
+  const { rows } = await pool.query("SELECT * FROM stories WHERE published=true ORDER BY date DESC");
   return NextResponse.json(rows.map(rowToStory));
 }
 

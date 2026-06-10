@@ -3,6 +3,8 @@ import pool from "@/lib/db";
 import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const today = new Date().toISOString().slice(0, 10);
   const { rows } = await pool.query("SELECT * FROM checklist WHERE date=$1", [today]);
   if (rows[0]) {
