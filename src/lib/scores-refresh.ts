@@ -1,4 +1,5 @@
 import pool from "./db";
+import { invalidatePrefix } from "./cache";
 import type { Score } from "@/app/api/scores/route";
 
 // Single owner of the ESPN → DB fixtures/scores pipeline.
@@ -136,6 +137,11 @@ export async function refreshScores(): Promise<RefreshSummary> {
   if (failedUpserts > 0) {
     const firstError = upserts.find((u) => u.status === "rejected") as PromiseRejectedResult | undefined;
     console.error(`[scores-refresh] ${failedUpserts} upserts failed, first error:`, firstError?.reason);
+  }
+  if (upserted > 0) {
+    // Fresh scores landed — drop fixture caches so pages re-read the DB
+    // instead of waiting out their TTL (which shows a stale-data warning)
+    invalidatePrefix("fixtures:");
   }
 
   // Record the run so pages and humans can see when data was last refreshed.

@@ -107,7 +107,9 @@ export default async function FixturesPage() {
           All competitions{lastRefresh ? ` · scores updated ${timeAgo(lastRefresh.at)}` : " · updates every 15 minutes"}
         </p>
 
-        {stale && updatedAt && (
+        {/* Only warn when data is older than two refresh cycles — routine
+            cache turnover on a quiet page isn't an interruption */}
+        {stale && updatedAt && Date.now() - updatedAt > 30 * 60 * 1000 && (
           <div style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: "var(--radius)", padding: "10px 16px", marginBottom: 24 }}>
             <p className="font-archivo-narrow" style={{ fontSize: "0.82rem", color: "#92400e" }}>
               ⚠️ Live updates are interrupted — showing fixtures saved {timeAgo(updatedAt)}.

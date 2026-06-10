@@ -90,6 +90,12 @@ export function invalidate(key: string) {
   // Don't delete inflight — let it complete and repopulate
 }
 
+export function invalidatePrefix(prefix: string) {
+  for (const key of store.keys()) {
+    if (key.startsWith(prefix)) store.delete(key);
+  }
+}
+
 export function invalidateAll() {
   store.clear();
 }

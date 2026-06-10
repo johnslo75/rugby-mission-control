@@ -252,7 +252,25 @@ function ScoreRow({ score }: { score: Score }) {
 }
 
 function ScoresSection({ scores }: { scores: Score[] }) {
-  if (scores.length === 0) return null;
+  if (scores.length === 0) {
+    // Quiet week — say so instead of silently dropping the section
+    return (
+      <section style={{ marginBottom: 48 }}>
+        <div className="section-header">
+          <span className="section-header-label">🏆 Weekend Results</span>
+          <div className="section-header-rule" />
+        </div>
+        <div className="card" style={{ padding: "18px 20px" }}>
+          <p className="font-archivo-narrow" style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+            No matches played in the last week.{" "}
+            <a href="/site/fixtures" style={{ color: "var(--green)", fontWeight: 700 }}>
+              See upcoming fixtures →
+            </a>
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   // Group by competition
   const grouped = new Map<string, Score[]>();
