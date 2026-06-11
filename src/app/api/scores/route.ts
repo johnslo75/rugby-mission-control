@@ -14,6 +14,8 @@ export interface Score {
   status: string;
   source: string;
   highlightUrl?: string | null;
+  homeLogo?: string | null;
+  awayLogo?: string | null;
 }
 
 // GET — scores from DB; ?refresh=1 (hub only) pulls from ESPN first

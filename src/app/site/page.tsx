@@ -261,12 +261,16 @@ function ScoreRow({ score }: { score: Score }) {
         <TeamBadge name={score.awayTeam} />
         {score.awayTeam}
       </span>
-      {score.highlightUrl && (
-        <a href={score.highlightUrl} target="_blank" rel="noopener noreferrer" title="Watch highlights"
-          style={{ fontSize: "0.7rem", color: "var(--green)", textDecoration: "none", fontWeight: 700 }}>
-          ▶
-        </a>
-      )}
+      {/* Fixed-width slot whether or not a clip exists, so the score column
+          stays centred across all rows */}
+      <span style={{ width: 14, flexShrink: 0, textAlign: "center" }}>
+        {score.highlightUrl && (
+          <a href={score.highlightUrl} target="_blank" rel="noopener noreferrer" title="Watch highlights"
+            style={{ fontSize: "0.7rem", color: "var(--green)", textDecoration: "none", fontWeight: 700 }}>
+            ▶
+          </a>
+        )}
+      </span>
     </div>
   );
 }

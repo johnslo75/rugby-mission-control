@@ -31,6 +31,8 @@ function rowToScore(r: Record<string, unknown>): Score {
     status: r.status as string,
     source: r.source as string,
     highlightUrl: (r.highlight_url as string) || null,
+    homeLogo: (r.home_logo as string) || null,
+    awayLogo: (r.away_logo as string) || null,
   };
 }
 

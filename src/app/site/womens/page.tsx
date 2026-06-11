@@ -13,8 +13,9 @@ export const metadata = {
   description: "Women's rugby fixtures and results: Six Nations, WXV, World Cup, PWR and more.",
 };
 
-function TeamCell({ name, align }: { name: string; align: "left" | "right" }) {
-  const logo = getTeamLogo(name);
+function TeamCell({ name, align, logoUrl }: { name: string; align: "left" | "right"; logoUrl?: string | null }) {
+  // Highlightly emblem (stored on the row) first, then the static map
+  const logo = logoUrl || getTeamLogo(name);
   const img = logo
     ? <img src={logo} alt={name} style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }} />
     : <span style={{ width: 28, height: 28, borderRadius: "50%", background: "#1f1f1f", color: "#fff", fontSize: "0.5rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{teamInitials(name)}</span>;
@@ -111,7 +112,7 @@ export default async function WomensPage() {
                     borderBottom: i < grouped[date].length - 1 ? "1px solid var(--rule)" : "none",
                     background: live ? "#f0fdf4" : undefined,
                   }}>
-                    <TeamCell name={f.homeTeam} align="right" />
+                    <TeamCell name={f.homeTeam} align="right" logoUrl={f.homeLogo} />
 
                     <div style={{ textAlign: "center", minWidth: 110 }}>
                       {completed ? (
@@ -148,7 +149,7 @@ export default async function WomensPage() {
                       </div>
                     </div>
 
-                    <TeamCell name={f.awayTeam} align="left" />
+                    <TeamCell name={f.awayTeam} align="left" logoUrl={f.awayLogo} />
                   </div>
                 );
               })}

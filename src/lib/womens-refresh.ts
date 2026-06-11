@@ -30,10 +30,18 @@ const WINDOW_FORWARD_DAYS = 30;
 interface HLMatch {
   id: number;
   date?: string;
-  homeTeam?: { name?: string };
-  awayTeam?: { name?: string };
+  homeTeam?: { name?: string; logo?: string };
+  awayTeam?: { name?: string; logo?: string };
   league?: { id?: number; name?: string };
   state?: { description?: string; score?: string };
+}
+
+let columnsEnsured = false;
+async function ensureLogoColumns() {
+  if (columnsEnsured) return;
+  await pool.query("ALTER TABLE scores ADD COLUMN IF NOT EXISTS home_logo TEXT");
+  await pool.query("ALTER TABLE scores ADD COLUMN IF NOT EXISTS away_logo TEXT");
+  columnsEnsured = true;
 }
 
 function isoDaysFromNow(days: number): string {
@@ -62,6 +70,7 @@ export async function refreshWomensScores(): Promise<void> {
 
   const headers = { "x-rapidapi-key": key };
   const leagueById = new Map(WOMENS_LEAGUES.map((l) => [l.id, l.name]));
+  await ensureLogoColumns();
 
   const matches: HLMatch[] = [];
   let failedDates = 0;
@@ -84,15 +93,17 @@ export async function refreshWomensScores(): Promise<void> {
     matches.map((m) => {
       const [home, away] = parseScore(m.state?.score);
       return pool.query(
-        `INSERT INTO scores (id, competition, home_team, away_team, home_score, away_score, match_date, status, source)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+        `INSERT INTO scores (id, competition, home_team, away_team, home_score, away_score, match_date, status, source, home_logo, away_logo)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
          ON CONFLICT (id) DO UPDATE SET
            home_score=EXCLUDED.home_score, away_score=EXCLUDED.away_score,
            status=EXCLUDED.status, match_date=EXCLUDED.match_date,
            home_team=EXCLUDED.home_team, away_team=EXCLUDED.away_team,
-           competition=EXCLUDED.competition`,
+           competition=EXCLUDED.competition,
+           home_logo=EXCLUDED.home_logo, away_logo=EXCLUDED.away_logo`,
         [`hl-${m.id}`, leagueById.get(m.league?.id ?? -1), m.homeTeam?.name ?? "TBC", m.awayTeam?.name ?? "TBC",
-         home, away, (m.date ?? "").slice(0, 10), mapStatus(m.state?.description), "highlightly"]
+         home, away, (m.date ?? "").slice(0, 10), mapStatus(m.state?.description), "highlightly",
+         m.homeTeam?.logo ?? null, m.awayTeam?.logo ?? null]
       );
     })
   );
