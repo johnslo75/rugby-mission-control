@@ -13,7 +13,7 @@ const NAV = [
   { label: "News", href: "/site/latest" },
   { label: "Fixtures", href: "/site/fixtures" },
   { label: "Women's", href: "/site/womens" },
-  { label: "Match Previews", href: "/site/category/match-previews" },
+  { label: "Maeve on Matchday", href: "/site/category/match-previews" },
   { label: "Analysis", href: "/site/category/tactical" },
 ];
 

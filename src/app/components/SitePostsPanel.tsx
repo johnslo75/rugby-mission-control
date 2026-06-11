@@ -139,6 +139,7 @@ function EditModal({ story, onSave, onClose, isNew }: {
                 <optgroup label="General">
                   <option value="News">📰 News</option>
                   <option value="Analysis">📐 Analysis</option>
+                  <option value="Match Previews">🎥 Maeve on Matchday</option>
                 </optgroup>
                 {REGION_ORDER.map((region) => (
                   <optgroup key={region} label={REGION_LABELS[region]}>
@@ -187,6 +188,17 @@ function EditModal({ story, onSave, onClose, isNew }: {
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* YouTube video (Maeve on Matchday and any video story) */}
+          <div>
+            <label className="field-label">YouTube video URL</label>
+            <input
+              className="field-input"
+              value={draft.videoUrl || ""}
+              onChange={(e) => setDraft({ ...draft, videoUrl: e.target.value })}
+              placeholder="https://www.youtube.com/watch?v=… (featured on Maeve on Matchday)"
+            />
           </div>
 
           {/* Image */}
