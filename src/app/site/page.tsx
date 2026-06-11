@@ -12,6 +12,7 @@ import CompetitionFilter from "./components/CompetitionFilter";
 import { getAllStories, getWeekendScores, readTime, daysUntil, formatDate, formatDateShort } from "./components/utils";
 import type { Score } from "./components/utils";
 import type { Story } from "../api/stories/route";
+import { getTeamLogo, teamInitials } from "@/lib/team-logos";
 
 interface HotTake { id: string; text: string; source: string; }
 
@@ -233,18 +234,31 @@ function AlsoToday({ stories }: { stories: Story[] }) {
 
 // ── Scores section ────────────────────────────────────────────────
 
+function TeamBadge({ name }: { name: string }) {
+  const logo = getTeamLogo(name);
+  return logo ? (
+    <img src={logo} alt={name} style={{ width: 18, height: 18, objectFit: "contain", flexShrink: 0 }} />
+  ) : (
+    <span style={{ width: 18, height: 18, borderRadius: "50%", background: "#1f1f1f", color: "#fff", fontSize: "0.4rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      {teamInitials(name)}
+    </span>
+  );
+}
+
 function ScoreRow({ score }: { score: Score }) {
   const homeWon = (score.homeScore ?? 0) > (score.awayScore ?? 0);
   const awayWon = (score.awayScore ?? 0) > (score.homeScore ?? 0);
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "1px solid var(--rule)" }}>
-      <span className="font-archivo" style={{ flex: 1, fontWeight: homeWon ? 800 : 400, fontSize: "0.82rem", color: homeWon ? "var(--ink)" : "var(--mid)", textAlign: "right" }}>
+      <span className="font-archivo" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, fontWeight: homeWon ? 800 : 400, fontSize: "0.82rem", color: homeWon ? "var(--ink)" : "var(--mid)", textAlign: "right" }}>
         {score.homeTeam}
+        <TeamBadge name={score.homeTeam} />
       </span>
       <span className="font-archivo" style={{ fontWeight: 900, fontSize: "0.95rem", color: "var(--ink)", minWidth: 56, textAlign: "center", letterSpacing: "0.04em" }}>
         {score.homeScore} – {score.awayScore}
       </span>
-      <span className="font-archivo" style={{ flex: 1, fontWeight: awayWon ? 800 : 400, fontSize: "0.82rem", color: awayWon ? "var(--ink)" : "var(--mid)" }}>
+      <span className="font-archivo" style={{ flex: 1, display: "flex", alignItems: "center", gap: 6, fontWeight: awayWon ? 800 : 400, fontSize: "0.82rem", color: awayWon ? "var(--ink)" : "var(--mid)" }}>
+        <TeamBadge name={score.awayTeam} />
         {score.awayTeam}
       </span>
       {score.highlightUrl && (
