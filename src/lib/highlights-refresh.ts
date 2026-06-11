@@ -7,7 +7,7 @@ import { invalidatePrefix } from "./cache";
 // requests per run against a 7,500/day plan.
 
 const BASE = "https://rugby.highlightly.net";
-const LOOKBACK_DAYS = 4; // highlights usually appear within hours of full time
+const LOOKBACK_DAYS = 7; // homepage shows results this far back
 
 interface HLMatch {
   id: number;
@@ -56,13 +56,19 @@ export async function refreshHighlights(): Promise<void> {
 
   await ensureColumn();
 
-  // Finished matches from the lookback window that still lack a highlight
+  // Finished matches from the lookback window that still lack a highlight.
+  // match_date is TEXT (ISO yyyy-mm-dd) — compare as strings like fixtures.ts.
+  const isoDaysAgo = (days: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return d.toISOString().slice(0, 10);
+  };
   const { rows } = await pool.query(
     `SELECT id, home_team, away_team, match_date FROM scores
      WHERE highlight_url IS NULL
        AND home_score IS NOT NULL AND away_score IS NOT NULL
-       AND match_date >= (CURRENT_DATE - $1::int) AND match_date <= CURRENT_DATE`,
-    [LOOKBACK_DAYS]
+       AND match_date >= $1 AND match_date <= $2`,
+    [isoDaysAgo(LOOKBACK_DAYS), isoDaysAgo(0)]
   );
   if (rows.length === 0) return;
 
