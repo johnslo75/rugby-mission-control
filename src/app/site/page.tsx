@@ -245,24 +245,34 @@ function TeamBadge({ name }: { name: string }) {
   );
 }
 
+function TeamLine({ name, points, won }: { name: string; points: number | null; won: boolean }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+      <TeamBadge name={name} />
+      <span className="font-archivo" style={{
+        flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        fontWeight: won ? 800 : 400, fontSize: "0.82rem", color: won ? "var(--ink)" : "var(--mid)",
+      }}>
+        {name}
+      </span>
+      <span className="font-archivo" style={{ fontWeight: won ? 900 : 600, fontSize: "0.88rem", color: won ? "var(--ink)" : "var(--mid)", flexShrink: 0 }}>
+        {points}
+      </span>
+    </div>
+  );
+}
+
+// One team per line so long names never wrap or push the scores out of
+// alignment in narrow competition cards
 function ScoreRow({ score }: { score: Score }) {
   const homeWon = (score.homeScore ?? 0) > (score.awayScore ?? 0);
   const awayWon = (score.awayScore ?? 0) > (score.homeScore ?? 0);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "1px solid var(--rule)" }}>
-      <span className="font-archivo" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, fontWeight: homeWon ? 800 : 400, fontSize: "0.82rem", color: homeWon ? "var(--ink)" : "var(--mid)", textAlign: "right" }}>
-        {score.homeTeam}
-        <TeamBadge name={score.homeTeam} />
-      </span>
-      <span className="font-archivo" style={{ fontWeight: 900, fontSize: "0.95rem", color: "var(--ink)", minWidth: 56, textAlign: "center", letterSpacing: "0.04em" }}>
-        {score.homeScore} – {score.awayScore}
-      </span>
-      <span className="font-archivo" style={{ flex: 1, display: "flex", alignItems: "center", gap: 6, fontWeight: awayWon ? 800 : 400, fontSize: "0.82rem", color: awayWon ? "var(--ink)" : "var(--mid)" }}>
-        <TeamBadge name={score.awayTeam} />
-        {score.awayTeam}
-      </span>
-      {/* Fixed-width slot whether or not a clip exists, so the score column
-          stays centred across all rows */}
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: "1px solid var(--rule)" }}>
+      <div style={{ flex: 1, minWidth: 0, display: "grid", gap: 3 }}>
+        <TeamLine name={score.homeTeam} points={score.homeScore} won={homeWon} />
+        <TeamLine name={score.awayTeam} points={score.awayScore} won={awayWon} />
+      </div>
       <span style={{ width: 14, flexShrink: 0, textAlign: "center" }}>
         {score.highlightUrl && (
           <a href={score.highlightUrl} target="_blank" rel="noopener noreferrer" title="Watch highlights"
