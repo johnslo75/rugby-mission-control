@@ -57,11 +57,12 @@ export default async function FixturesPage() {
   const lastRefresh = await getLastScoresRefresh();
 
   const today = new Date().toISOString().slice(0, 10);
-  const threeDaysAgo = new Date();
-  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-  const cutoff = threeDaysAgo.toISOString().slice(0, 10);
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const cutoff = sevenDaysAgo.toISOString().slice(0, 10);
 
-  // Keep results from last 3 days + all upcoming fixtures
+  // Keep results from the last week (so the previous round and its
+  // highlights stay visible between rounds) + all upcoming fixtures
   const scores = allScores.filter((s) => {
     const date = s.matchDate?.slice(0, 10) || "";
     if (date >= today) return true; // upcoming
