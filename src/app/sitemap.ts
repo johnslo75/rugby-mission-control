@@ -4,6 +4,10 @@ import { COMPETITIONS } from "@/lib/competitions";
 
 const BASE = "https://rugbyradar.co";
 
+// Must render at request time: the DB is unreachable from the build
+// environment, so a static sitemap would bake in zero articles
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${BASE}/`, changeFrequency: "hourly", priority: 1 },
