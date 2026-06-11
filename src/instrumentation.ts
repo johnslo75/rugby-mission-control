@@ -38,6 +38,17 @@ export async function register() {
     };
     setTimeout(() => runHighlightsRefresh("startup"), 15000);
 
+    // Women's fixtures/results come from Highlightly (ESPN doesn't carry them).
+    const runWomensRefresh = async (label: string) => {
+      try {
+        const { refreshWomensScores } = await import("./lib/womens-refresh");
+        await refreshWomensScores();
+      } catch (err) {
+        console.error(`[Cron] Womens refresh (${label}) failed:`, err);
+      }
+    };
+    setTimeout(() => runWomensRefresh("startup"), 10000);
+
     const cron = await import("node-cron");
 
     cron.default.schedule("*/15 * * * *", () => runScoresRefresh("15min"));
@@ -45,6 +56,9 @@ export async function register() {
 
     cron.default.schedule("30 * * * *", () => runHighlightsRefresh("hourly"));
     console.log("[Cron] Highlights refresh scheduled hourly.");
+
+    cron.default.schedule("20 * * * *", () => runWomensRefresh("hourly"));
+    console.log("[Cron] Womens scores refresh scheduled hourly.");
 
     // Schedule daily scan at 7:00 AM UTC
     cron.default.schedule("0 7 * * *", async () => {

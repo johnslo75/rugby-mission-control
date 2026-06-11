@@ -1,14 +1,19 @@
 import pool from "@/lib/db";
 import { cached } from "@/lib/cache";
 import { getFixtures } from "@/lib/fixtures";
+import { WOMENS_COMPETITION_NAMES } from "@/lib/womens-refresh";
 import type { Story } from "../../api/stories/route";
 import type { Score } from "../../api/scores/route";
 
 export type { Score };
 
-// Homepage scores widget — results only (with scores)
+// Homepage scores widget — results only (with scores). Women's competitions
+// live on /site/womens, not here.
 export async function getWeekendScores(): Promise<Score[]> {
-  const { scores } = await getFixtures({ daysBack: 7, daysForward: 7, ttlSeconds: 300 });
+  const { scores } = await getFixtures({
+    daysBack: 7, daysForward: 7, ttlSeconds: 300,
+    excludeCompetitions: WOMENS_COMPETITION_NAMES,
+  });
   return scores
     .filter((s) => s.homeScore !== null)
     .sort((a, b) => (a.matchDate < b.matchDate ? 1 : -1));
@@ -16,7 +21,10 @@ export async function getWeekendScores(): Promise<Score[]> {
 
 // Fixtures page — all matches including upcoming
 export async function getAllFixtures(): Promise<Score[]> {
-  const { scores } = await getFixtures({ daysBack: 7, daysForward: 30, ttlSeconds: 300 });
+  const { scores } = await getFixtures({
+    daysBack: 7, daysForward: 30, ttlSeconds: 300,
+    excludeCompetitions: WOMENS_COMPETITION_NAMES,
+  });
   return scores;
 }
 

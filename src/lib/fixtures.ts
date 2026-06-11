@@ -34,12 +34,23 @@ function rowToScore(r: Record<string, unknown>): Score {
   };
 }
 
-async function queryScores(daysBack: number, daysForward: number, competitions?: string[]): Promise<Score[]> {
+async function queryScores(
+  daysBack: number,
+  daysForward: number,
+  competitions?: string[],
+  excludeCompetitions?: string[]
+): Promise<Score[]> {
   const params: unknown[] = [isoDaysFromNow(-daysBack), isoDaysFromNow(daysForward)];
   let compFilter = "";
   if (competitions?.length) {
-    compFilter = ` AND competition IN (${competitions.map((_, i) => `$${i + 3}`).join(", ")})`;
+    const start = params.length + 1;
+    compFilter += ` AND competition IN (${competitions.map((_, i) => `$${start + i}`).join(", ")})`;
     params.push(...competitions);
+  }
+  if (excludeCompetitions?.length) {
+    const start = params.length + 1;
+    compFilter += ` AND competition NOT IN (${excludeCompetitions.map((_, i) => `$${start + i}`).join(", ")})`;
+    params.push(...excludeCompetitions);
   }
   const { rows } = await pool.query(
     `SELECT * FROM scores
@@ -54,14 +65,15 @@ export async function getFixtures(opts: {
   daysBack: number;
   daysForward: number;
   competitions?: string[];
+  excludeCompetitions?: string[];
   ttlSeconds?: number;
 }): Promise<FixturesData> {
-  const key = `fixtures:${opts.daysBack}:${opts.daysForward}:${opts.competitions?.join(",") || "all"}`;
+  const key = `fixtures:${opts.daysBack}:${opts.daysForward}:${opts.competitions?.join(",") || "all"}${opts.excludeCompetitions?.length ? `:ex:${opts.excludeCompetitions.join(",")}` : ""}`;
   try {
     const { data, updatedAt, stale } = await cachedMeta(
       key,
       opts.ttlSeconds ?? 120,
-      () => queryScores(opts.daysBack, opts.daysForward, opts.competitions)
+      () => queryScores(opts.daysBack, opts.daysForward, opts.competitions, opts.excludeCompetitions)
     );
     return { scores: data, updatedAt, stale, error: false };
   } catch (err) {
