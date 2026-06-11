@@ -26,10 +26,25 @@ export async function register() {
     };
     setTimeout(() => runScoresRefresh("startup"), 5000);
 
+    // Attach Highlightly highlight links to recently finished matches.
+    // No-op when HIGHLIGHTLY_API_KEY isn't set.
+    const runHighlightsRefresh = async (label: string) => {
+      try {
+        const { refreshHighlights } = await import("./lib/highlights-refresh");
+        await refreshHighlights();
+      } catch (err) {
+        console.error(`[Cron] Highlights refresh (${label}) failed:`, err);
+      }
+    };
+    setTimeout(() => runHighlightsRefresh("startup"), 15000);
+
     const cron = await import("node-cron");
 
     cron.default.schedule("*/15 * * * *", () => runScoresRefresh("15min"));
     console.log("[Cron] Scores refresh scheduled every 15 minutes.");
+
+    cron.default.schedule("30 * * * *", () => runHighlightsRefresh("hourly"));
+    console.log("[Cron] Highlights refresh scheduled hourly.");
 
     // Schedule daily scan at 7:00 AM UTC
     cron.default.schedule("0 7 * * *", async () => {

@@ -247,6 +247,12 @@ function ScoreRow({ score }: { score: Score }) {
       <span className="font-archivo" style={{ flex: 1, fontWeight: awayWon ? 800 : 400, fontSize: "0.82rem", color: awayWon ? "var(--ink)" : "var(--mid)" }}>
         {score.awayTeam}
       </span>
+      {score.highlightUrl && (
+        <a href={score.highlightUrl} target="_blank" rel="noopener noreferrer" title="Watch highlights"
+          style={{ fontSize: "0.7rem", color: "var(--green)", textDecoration: "none", fontWeight: 700 }}>
+          ▶
+        </a>
+      )}
     </div>
   );
 }

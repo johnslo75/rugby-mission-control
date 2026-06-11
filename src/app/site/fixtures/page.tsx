@@ -163,9 +163,20 @@ export default async function FixturesPage() {
 
                     <div style={{ textAlign: "center", minWidth: 110 }}>
                       {completed ? (
-                        <span className="font-archivo" style={{ fontWeight: 900, fontSize: "1rem", color: "var(--ink)" }}>
-                          {f.homeScore} – {f.awayScore}
-                        </span>
+                        <>
+                          <span className="font-archivo" style={{ fontWeight: 900, fontSize: "1rem", color: "var(--ink)" }}>
+                            {f.homeScore} – {f.awayScore}
+                          </span>
+                          {f.highlightUrl && (
+                            <div>
+                              <a href={f.highlightUrl} target="_blank" rel="noopener noreferrer"
+                                className="font-archivo-narrow"
+                                style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--green)", textDecoration: "none" }}>
+                                ▶ Highlights
+                              </a>
+                            </div>
+                          )}
+                        </>
                       ) : live ? (
                         <span style={{ background: "#00a86b", color: "#fff", fontWeight: 700, fontSize: "0.65rem", padding: "2px 8px", borderRadius: 4 }}>LIVE</span>
                       ) : (

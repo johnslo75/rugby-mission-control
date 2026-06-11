@@ -30,6 +30,7 @@ function rowToScore(r: Record<string, unknown>): Score {
     matchDate: r.match_date as string,
     status: r.status as string,
     source: r.source as string,
+    highlightUrl: (r.highlight_url as string) || null,
   };
 }
 

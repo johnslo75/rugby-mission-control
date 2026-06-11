@@ -13,6 +13,7 @@ export interface Score {
   matchDate: string;
   status: string;
   source: string;
+  highlightUrl?: string | null;
 }
 
 // GET — scores from DB; ?refresh=1 (hub only) pulls from ESPN first
