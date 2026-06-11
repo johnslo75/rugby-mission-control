@@ -1,7 +1,9 @@
 // Highlightly trial probe — evaluates the free tier against Rugby Radar's needs
 // before wiring anything into the pipeline.
 //
-// Usage:  HIGHLIGHTLY_API_KEY=xxx node scripts/highlightly-probe.mjs
+// Usage:
+//   Direct key:   HIGHLIGHTLY_API_KEY=xxx node scripts/highlightly-probe.mjs
+//   Via RapidAPI: HIGHLIGHTLY_API_KEY=xxx HIGHLIGHTLY_RAPIDAPI=1 node scripts/highlightly-probe.mjs
 //
 // Checks, in order:
 //   1. /leagues   — can we find all 8 competitions scores-refresh.ts polls?
@@ -16,13 +18,18 @@ if (!KEY) {
   process.exit(1);
 }
 
-const BASE = "https://rugby.highlightly.net";
+const RAPIDAPI_HOST = "rugby-highlights-api.p.rapidapi.com";
+const viaRapidApi = !!process.env.HIGHLIGHTLY_RAPIDAPI;
+const BASE = viaRapidApi ? `https://${RAPIDAPI_HOST}` : "https://rugby.highlightly.net";
+const HEADERS = viaRapidApi
+  ? { "x-rapidapi-key": KEY, "x-rapidapi-host": RAPIDAPI_HOST }
+  : { "x-rapidapi-key": KEY };
 let requestsUsed = 0;
 
 async function api(path, params = {}) {
   const url = new URL(BASE + path);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, String(v));
-  const res = await fetch(url, { headers: { "x-rapidapi-key": KEY }, signal: AbortSignal.timeout(15000) });
+  const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(15000) });
   requestsUsed++;
   const remaining = res.headers.get("x-ratelimit-requests-remaining");
   if (!res.ok) throw new Error(`${path} -> ${res.status} ${await res.text()}`);
