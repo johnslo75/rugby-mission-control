@@ -113,7 +113,9 @@ export async function refreshScores(): Promise<RefreshSummary> {
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
          ON CONFLICT (id) DO UPDATE SET
            home_score=EXCLUDED.home_score, away_score=EXCLUDED.away_score,
-           status=EXCLUDED.status, match_date=EXCLUDED.match_date`,
+           status=EXCLUDED.status, match_date=EXCLUDED.match_date,
+           home_team=EXCLUDED.home_team, away_team=EXCLUDED.away_team,
+           competition=EXCLUDED.competition`,
         [s.id, s.competition, s.homeTeam, s.awayTeam, s.homeScore, s.awayScore,
          s.matchDate.slice(0, 10), s.status, s.source]
       )
