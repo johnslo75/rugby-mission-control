@@ -124,8 +124,8 @@ export default async function WomensPage() {
                             <div>
                               <a href={f.highlightUrl} target="_blank" rel="noopener noreferrer"
                                 className="font-archivo-narrow"
-                                style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--green)", textDecoration: "none" }}>
-                                ▶ Highlights
+                                style={{ display: "inline-block", marginTop: 2, padding: "1px 7px", fontSize: "0.68rem", fontWeight: 700, color: "var(--green)", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 4, textDecoration: "none" }}>
+                                ▶ Watch highlights
                               </a>
                             </div>
                           )}

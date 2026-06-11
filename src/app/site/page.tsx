@@ -268,19 +268,23 @@ function ScoreRow({ score }: { score: Score }) {
   const homeWon = (score.homeScore ?? 0) > (score.awayScore ?? 0);
   const awayWon = (score.awayScore ?? 0) > (score.homeScore ?? 0);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: "1px solid var(--rule)" }}>
-      <div style={{ flex: 1, minWidth: 0, display: "grid", gap: 3 }}>
+    <div style={{ padding: "7px 0", borderBottom: "1px solid var(--rule)" }}>
+      <div style={{ display: "grid", gap: 3 }}>
         <TeamLine name={score.homeTeam} points={score.homeScore} won={homeWon} />
         <TeamLine name={score.awayTeam} points={score.awayScore} won={awayWon} />
       </div>
-      <span style={{ width: 14, flexShrink: 0, textAlign: "center" }}>
-        {score.highlightUrl && (
-          <a href={score.highlightUrl} target="_blank" rel="noopener noreferrer" title="Watch highlights"
-            style={{ fontSize: "0.7rem", color: "var(--green)", textDecoration: "none", fontWeight: 700 }}>
-            ▶
-          </a>
-        )}
-      </span>
+      {score.highlightUrl && (
+        <a href={score.highlightUrl} target="_blank" rel="noopener noreferrer"
+          className="font-archivo-narrow"
+          style={{
+            display: "inline-block", marginTop: 5, padding: "2px 8px",
+            fontSize: "0.68rem", fontWeight: 700, color: "var(--green)",
+            background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 4,
+            textDecoration: "none",
+          }}>
+          ▶ Watch highlights
+        </a>
+      )}
     </div>
   );
 }
