@@ -15,7 +15,7 @@ export async function getWeekendScores(): Promise<Score[]> {
     excludeCompetitions: WOMENS_COMPETITION_NAMES,
   });
   return scores
-    .filter((s) => s.homeScore !== null)
+    .filter((s) => s.homeScore !== null && s.status !== "Live")
     .sort((a, b) => (a.matchDate < b.matchDate ? 1 : -1));
 }
 

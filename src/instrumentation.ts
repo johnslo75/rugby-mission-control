@@ -60,6 +60,18 @@ export async function register() {
     cron.default.schedule("20 * * * *", () => runWomensRefresh("hourly"));
     console.log("[Cron] Womens scores refresh scheduled hourly.");
 
+    // Live scores: every 2 minutes, but it exits without an API call
+    // unless today has an unfinished match
+    cron.default.schedule("*/2 * * * *", async () => {
+      try {
+        const { refreshLiveScores } = await import("./lib/live-refresh");
+        await refreshLiveScores();
+      } catch (err) {
+        console.error("[Cron] Live refresh failed:", err);
+      }
+    });
+    console.log("[Cron] Live scores watcher scheduled every 2 minutes.");
+
     // Schedule daily scan at 7:00 AM UTC
     cron.default.schedule("0 7 * * *", async () => {
       console.log("[Cron] Starting scheduled 7am rugby scan…");

@@ -181,7 +181,9 @@ export default async function FixturesPage() {
                           )}
                         </>
                       ) : live ? (
-                        <span style={{ background: "#00a86b", color: "#fff", fontWeight: 700, fontSize: "0.65rem", padding: "2px 8px", borderRadius: 4 }}>LIVE</span>
+                        <span style={{ background: "#00a86b", color: "#fff", fontWeight: 700, fontSize: "0.65rem", padding: "2px 8px", borderRadius: 4 }}>
+                          LIVE{f.homeScore !== null ? ` ${f.homeScore} – ${f.awayScore}` : ""}
+                        </span>
                       ) : (
                         <span className="font-archivo-narrow" style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
                           {f.status || "TBC"}
