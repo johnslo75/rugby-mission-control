@@ -317,10 +317,17 @@ function ScoresSection({ scores }: { scores: Score[] }) {
     grouped.get(s.competition)!.push(s);
   }
 
+  const hasHighlights = scores.some((s) => s.highlightUrl);
+
   return (
     <section style={{ marginBottom: 48 }}>
       <div className="section-header">
         <span className="section-header-label">🏆 Weekend Results</span>
+        {hasHighlights && (
+          <span className="font-archivo-narrow" style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--green)", whiteSpace: "nowrap" }}>
+            ▶ highlights
+          </span>
+        )}
         <div className="section-header-rule" />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
