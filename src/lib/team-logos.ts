@@ -127,3 +127,32 @@ export function getTeamLogo(teamName: string): string | null {
 export function teamInitials(name: string): string {
   return name.split(" ").map((w) => w[0]).join("").slice(0, 3).toUpperCase();
 }
+
+// Generic words that must never be the sole basis for a name match — French
+// and English clubs share these ("Stade" Toulousain/Rochelais/Français, etc.)
+const GENERIC_WORDS = new Set([
+  "the", "rugby", "rfc", "club", "union", "stade", "olympique", "aviron",
+  "section", "racing", "rc", "us", "usa",
+]);
+
+function significantWords(name: string): Set<string> {
+  return new Set(
+    name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") // strip accents
+      .replace(/[^a-z\s]/g, "").split(/\s+/)
+      .filter((w) => w.length > 2 && !GENERIC_WORDS.has(w))
+  );
+}
+
+// True when two names (which may come from different sources — ESPN says
+// "Pau", Highlightly says "Section Paloise") refer to the same club. The logo
+// map already encodes these aliases, so a shared crest is the strongest
+// signal; otherwise fall back to significant-word overlap.
+export function sameTeam(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  if (a.toLowerCase() === b.toLowerCase()) return true;
+  const la = getTeamLogo(a), lb = getTeamLogo(b);
+  if (la && lb) return la === lb; // both known: trust the alias map (catches Pau≠Toulon)
+  const wa = significantWords(a), wb = significantWords(b);
+  for (const w of wa) if (wb.has(w)) return true;
+  return false;
+}

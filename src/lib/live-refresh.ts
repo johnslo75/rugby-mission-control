@@ -1,5 +1,6 @@
 import pool from "./db";
 import { invalidatePrefix } from "./cache";
+import { sameTeam } from "./team-logos";
 
 // Match-day live scores. Runs every 2 minutes from instrumentation.ts but
 // only spends an API request when today has a match that isn't finished —
@@ -8,20 +9,6 @@ import { invalidatePrefix } from "./cache";
 // for fixtures; this only freshens score/status between ESPN's 15-min runs.
 
 const FINISHED = ["FT", "Final", "Full Time", "Postponed", "Cancelled", "Canceled"];
-
-// Same word-overlap matcher as highlights-refresh: names differ between
-// sources ("DHL Stormers" vs "Stormers")
-function nameWords(name: string): Set<string> {
-  return new Set(
-    name.toLowerCase().replace(/[^a-z\s]/g, "").split(/\s+/)
-      .filter((w) => w.length > 2 && !["the", "rugby", "rfc"].includes(w))
-  );
-}
-function teamsMatch(a: string, b: string): boolean {
-  const wa = nameWords(a), wb = nameWords(b);
-  for (const w of wa) if (wb.has(w)) return true;
-  return false;
-}
 
 function parseScore(s?: string): [number | null, number | null] {
   const m = s?.match(/^\s*(\d+)\s*-\s*(\d+)\s*$/);
@@ -88,8 +75,8 @@ export async function refreshLiveScores(): Promise<void> {
     const m = matches.find(
       (x) =>
         row.id === `hl-${x.id}` ||
-        (teamsMatch(x.homeTeam?.name ?? "", row.home_team as string) &&
-          teamsMatch(x.awayTeam?.name ?? "", row.away_team as string))
+        (sameTeam(x.homeTeam?.name ?? "", row.home_team as string) &&
+          sameTeam(x.awayTeam?.name ?? "", row.away_team as string))
     );
     if (!m) continue;
     const [home, away] = parseScore(m.state?.score);

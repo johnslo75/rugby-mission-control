@@ -1,5 +1,6 @@
 import pool from "./db";
 import { invalidatePrefix } from "./cache";
+import { sameTeam } from "./team-logos";
 
 // Highlightly → DB highlights enrichment. ESPN (scores-refresh.ts) stays the
 // owner of fixtures and scores; this only fills scores.highlight_url for
@@ -26,21 +27,6 @@ async function api<T>(path: string, h: Record<string, string>): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { headers: h, signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error(`Highlightly ${path} -> ${res.status}`);
   return res.json() as Promise<T>;
-}
-
-// Team names differ between sources ("DHL Stormers" vs "Stormers",
-// "Stade Rochelais" vs "La Rochelle"). Compare on significant word overlap.
-function nameWords(name: string): Set<string> {
-  return new Set(
-    name.toLowerCase().replace(/[^a-z\s]/g, "").split(/\s+/)
-      .filter((w) => w.length > 2 && !["the", "rugby", "rfc"].includes(w))
-  );
-}
-
-function teamsMatch(a: string, b: string): boolean {
-  const wa = nameWords(a), wb = nameWords(b);
-  for (const w of wa) if (wb.has(w)) return true;
-  return false;
 }
 
 let columnEnsured = false;
@@ -89,8 +75,8 @@ export async function refreshHighlights(): Promise<void> {
     const candidates = byDate.get(String(row.match_date).slice(0, 10)) ?? [];
     const match = candidates.find(
       (m) =>
-        teamsMatch(m.homeTeam?.name ?? "", row.home_team as string) &&
-        teamsMatch(m.awayTeam?.name ?? "", row.away_team as string)
+        sameTeam(m.homeTeam?.name ?? "", row.home_team as string) &&
+        sameTeam(m.awayTeam?.name ?? "", row.away_team as string)
     );
     if (!match) continue;
     try {
