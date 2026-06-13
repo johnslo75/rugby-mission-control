@@ -55,15 +55,29 @@ export async function refreshLiveScores(): Promise<void> {
   );
   if (rows.length === 0) return; // nothing on today — no API spend
 
-  let matches: HLMatch[] = [];
+  // One retry: the endpoint is normally <300ms but occasionally blips past
+  // the timeout, and a missed poll during a live match is a visible gap.
+  async function fetchMatches(): Promise<HLMatch[]> {
+    let lastErr: unknown;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const res = await fetch(`https://rugby.highlightly.net/matches?date=${today}&limit=100`, {
+          headers: { "x-rapidapi-key": key }, signal: AbortSignal.timeout(12000),
+        });
+        if (!res.ok) throw new Error(`-> ${res.status}`);
+        return ((await res.json()) as { data?: HLMatch[] }).data ?? [];
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr;
+  }
+
+  let matches: HLMatch[];
   try {
-    const res = await fetch(`https://rugby.highlightly.net/matches?date=${today}&limit=100`, {
-      headers: { "x-rapidapi-key": key }, signal: AbortSignal.timeout(10000),
-    });
-    if (!res.ok) throw new Error(`-> ${res.status}`);
-    matches = ((await res.json()) as { data?: HLMatch[] }).data ?? [];
+    matches = await fetchMatches();
   } catch (err) {
-    console.error("[live] matches fetch failed:", err instanceof Error ? err.message : err);
+    console.error(`[live] matches fetch failed (${rows.length} match(es) awaiting): `, err instanceof Error ? err.message : err);
     return;
   }
 
@@ -94,8 +108,14 @@ export async function refreshLiveScores(): Promise<void> {
     changed += r.rowCount ?? 0;
   }
 
-  if (changed > 0) {
-    invalidatePrefix("fixtures:");
-    console.log(`[live] updated ${changed} match(es), ${live} live`);
+  if (changed > 0) invalidatePrefix("fixtures:");
+
+  // Log every run that has a live match in play (not just on change), so a
+  // match's live coverage is verifiable afterwards. Quiet/pre-kickoff runs
+  // stay silent. ~60 lines across a 2-hour match — cheap and worth it.
+  if (live > 0) {
+    console.log(`[live] poll: ${live} live, ${changed} updated this run (${rows.length} match(es) tracked today)`);
+  } else if (changed > 0) {
+    console.log(`[live] updated ${changed} match(es) (kickoff/full-time transitions)`);
   }
 }
