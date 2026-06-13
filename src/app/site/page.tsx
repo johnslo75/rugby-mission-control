@@ -274,20 +274,33 @@ function ScoreRow({ score }: { score: Score }) {
         <TeamLine name={score.homeTeam} points={score.homeScore} won={homeWon} />
         <TeamLine name={score.awayTeam} points={score.awayScore} won={awayWon} />
       </div>
-      {score.highlightUrl && (
-        <a href={score.highlightUrl} target="_blank" rel="noopener noreferrer"
-          className="font-archivo-narrow"
-          style={{
-            display: "inline-block", marginTop: 5, padding: "2px 8px",
-            fontSize: "0.68rem", fontWeight: 700, color: "var(--green)",
-            background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 4,
-            textDecoration: "none",
-          }}>
-          ▶ Watch highlights
-        </a>
-      )}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 5 }}>
+        <span className="font-archivo-narrow" style={{ fontSize: "0.66rem", color: "var(--muted)", whiteSpace: "nowrap" }}>
+          {matchDateLabel(score.matchDate)}
+        </span>
+        {score.highlightUrl && (
+          <a href={score.highlightUrl} target="_blank" rel="noopener noreferrer"
+            className="font-archivo-narrow"
+            style={{
+              display: "inline-block", padding: "2px 8px",
+              fontSize: "0.68rem", fontWeight: 700, color: "var(--green)",
+              background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 4,
+              textDecoration: "none",
+            }}>
+            ▶ Watch highlights
+          </a>
+        )}
+      </div>
     </div>
   );
+}
+
+// "Sat 13 Jun" — noon anchor avoids the yyyy-mm-dd-parsed-as-UTC day shift
+function matchDateLabel(iso: string): string {
+  if (!iso) return "";
+  return new Date(iso.slice(0, 10) + "T12:00:00").toLocaleDateString("en-IE", {
+    weekday: "short", day: "numeric", month: "short",
+  });
 }
 
 function ScoresSection({ scores }: { scores: Score[] }) {
