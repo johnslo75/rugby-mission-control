@@ -19,6 +19,13 @@ export async function getWeekendScores(): Promise<Score[]> {
     .sort((a, b) => (a.matchDate < b.matchDate ? 1 : -1));
 }
 
+// Matches in play right now, across every competition (incl. women's) —
+// powers the homepage LIVE NOW strip. Short TTL so it tracks the 2-min watcher.
+export async function getLiveMatches(): Promise<Score[]> {
+  const { scores } = await getFixtures({ daysBack: 1, daysForward: 1, ttlSeconds: 60 });
+  return scores.filter((s) => s.status === "Live" || s.status === "live");
+}
+
 // Fixtures page — all matches including upcoming
 export async function getAllFixtures(): Promise<Score[]> {
   const { scores } = await getFixtures({

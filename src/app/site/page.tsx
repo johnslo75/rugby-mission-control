@@ -9,7 +9,8 @@ import BreakingTicker from "./components/BreakingTicker";
 import CategoryBadge from "./components/CategoryBadge";
 import SiteFooter from "./components/SiteFooter";
 import CompetitionFilter from "./components/CompetitionFilter";
-import { getAllStories, getWeekendScores, readTime, daysUntil, formatDate, formatDateShort } from "./components/utils";
+import { getAllStories, getWeekendScores, getLiveMatches, readTime, daysUntil, formatDate, formatDateShort } from "./components/utils";
+import LiveRefresher from "./components/LiveRefresher";
 import type { Score } from "./components/utils";
 import type { Story } from "../api/stories/route";
 import { getTeamLogo, teamInitials } from "@/lib/team-logos";
@@ -347,11 +348,13 @@ function ScoresSection({ scores }: { scores: Score[] }) {
 // ── Page ───────────────────────────────────────────────────────────
 
 export default async function HomePage() {
-  const [stories, scores, hotTake] = await Promise.all([
+  const [stories, scores, hotTake, liveMatches] = await Promise.all([
     getAllStories().catch(() => []),
     getWeekendScores().catch(() => []),
     getHotTake().catch(() => null),
+    getLiveMatches().catch(() => []),
   ]);
+  const hasLive = liveMatches.length > 0;
   const hero      = stories.find((s) => (s as Story & { featured?: boolean }).featured) || stories[0];
   const rest      = stories.filter((s) => s.id !== hero?.id);
   const featured  = rest.slice(0, 3);
@@ -363,9 +366,29 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Keep the homepage in sync while a match is live so the strip appears
+          and disappears on its own; idle when nothing is live */}
+      <LiveRefresher active={hasLive} />
       <TopBar />
       <SiteHeader />
       <BreakingTicker stories={stories.slice(0, 5).map((s) => ({ title: s.title, slug: s.slug }))} />
+
+      {hasLive && (
+        <a href="/site/fixtures" style={{ display: "block", textDecoration: "none", background: "#7f1d1d" }}>
+          <div style={{ maxWidth: 1240, margin: "0 auto", padding: "8px 20px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <span className="font-archivo" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 900, fontSize: "0.7rem", letterSpacing: "0.1em", color: "#fff", textTransform: "uppercase", flexShrink: 0 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", boxShadow: "0 0 0 0 rgba(239,68,68,1)", animation: "livePulse 1.6s infinite" }} />
+              Live Now
+            </span>
+            <span className="font-archivo-narrow" style={{ color: "#fecaca", fontSize: "0.82rem", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+              {liveMatches.map((m) => `${m.homeTeam} ${m.homeScore ?? 0}–${m.awayScore ?? 0} ${m.awayTeam}`).join("   ·   ")}
+            </span>
+            <span className="font-archivo" style={{ color: "#fff", fontSize: "0.72rem", fontWeight: 700, flexShrink: 0 }}>
+              Watch live →
+            </span>
+          </div>
+        </a>
+      )}
 
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 20px 0", boxSizing: "border-box", width: "100%" }}>
 
