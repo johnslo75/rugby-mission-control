@@ -83,14 +83,16 @@ export async function refreshLiveScores(): Promise<void> {
     const status = mapStatus(m.state?.description);
     if (status === "Live") live++;
     if (!status && home === null) continue; // still pre-kickoff
+    // Explicit casts: these params appear only inside COALESCE / IS NOT NULL,
+    // which gives Postgres no way to infer their type (error 42P08) without them.
     const r = await pool.query(
       `UPDATE scores SET
-         home_score = COALESCE($2, home_score),
-         away_score = COALESCE($3, away_score),
-         status = COALESCE($4, status)
+         home_score = COALESCE($2::int, home_score),
+         away_score = COALESCE($3::int, away_score),
+         status = COALESCE($4::text, status)
        WHERE id = $1
-         AND (($4 IS NOT NULL AND status IS DISTINCT FROM $4)
-           OR ($2 IS NOT NULL AND (home_score IS DISTINCT FROM $2 OR away_score IS DISTINCT FROM $3)))`,
+         AND (($4::text IS NOT NULL AND status IS DISTINCT FROM $4::text)
+           OR ($2::int IS NOT NULL AND (home_score IS DISTINCT FROM $2::int OR away_score IS DISTINCT FROM $3::int)))`,
       [row.id, home, away, status]
     );
     changed += r.rowCount ?? 0;
