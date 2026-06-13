@@ -6,6 +6,7 @@ import { COMPETITIONS } from "@/lib/competitions";
 import { getFixtures } from "@/lib/fixtures";
 import { getLastScoresRefresh } from "@/lib/scores-refresh";
 import { WOMENS_COMPETITION_NAMES } from "@/lib/womens-refresh";
+import LiveRefresher from "../components/LiveRefresher";
 import type { Score } from "../../api/scores/route";
 
 export const dynamic = "force-dynamic";
@@ -90,6 +91,7 @@ export default async function FixturesPage() {
 
   const isCompleted = (s: Score) => s.status === "FT" || s.status === "Final" || (s.homeScore !== null && s.awayScore !== null);
   const isLive = (s: Score) => s.status === "Live" || s.status === "live";
+  const anyLive = scores.some(isLive);
 
   if (sortedDates.length === 0) {
     console.warn(
@@ -99,6 +101,7 @@ export default async function FixturesPage() {
 
   return (
     <>
+      <LiveRefresher active={anyLive} />
       <TopBar />
       <SiteHeader />
 

@@ -4,6 +4,7 @@ import SiteFooter from "../components/SiteFooter";
 import { getTeamLogo, teamInitials } from "@/lib/team-logos";
 import { getFixtures } from "@/lib/fixtures";
 import { WOMENS_COMPETITION_NAMES } from "@/lib/womens-refresh";
+import LiveRefresher from "../components/LiveRefresher";
 import type { Score } from "../../api/scores/route";
 
 export const dynamic = "force-dynamic";
@@ -63,9 +64,11 @@ export default async function WomensPage() {
 
   const isCompleted = (s: Score) => s.status === "FT" || (s.homeScore !== null && s.awayScore !== null);
   const isLive = (s: Score) => s.status === "Live";
+  const anyLive = scores.some(isLive);
 
   return (
     <>
+      <LiveRefresher active={anyLive} />
       <TopBar />
       <SiteHeader />
 
