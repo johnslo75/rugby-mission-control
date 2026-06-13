@@ -9,7 +9,7 @@ import BreakingTicker from "./components/BreakingTicker";
 import CategoryBadge from "./components/CategoryBadge";
 import SiteFooter from "./components/SiteFooter";
 import CompetitionFilter from "./components/CompetitionFilter";
-import { getAllStories, getWeekendScores, getLiveMatches, readTime, daysUntil, formatDate, formatDateShort } from "./components/utils";
+import { getAllStories, getWeekendScores, getLiveMatches, getRecentHighlights, readTime, daysUntil, formatDate, formatDateShort } from "./components/utils";
 import LiveRefresher from "./components/LiveRefresher";
 import type { Score } from "./components/utils";
 import type { Story } from "../api/stories/route";
@@ -303,6 +303,38 @@ function matchDateLabel(iso: string): string {
   });
 }
 
+function HighlightsSection({ highlights }: { highlights: Score[] }) {
+  if (highlights.length === 0) return null;
+  return (
+    <section style={{ marginBottom: 48 }}>
+      <div className="section-header">
+        <span className="section-header-label">🎬 Latest Highlights</span>
+        <div className="section-header-rule" />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+        {highlights.map((m) => (
+          <a key={m.id} href={m.highlightUrl ?? "#"} target="_blank" rel="noopener noreferrer"
+            className="card" style={{ padding: "12px 14px", textDecoration: "none", display: "block" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+              <TeamBadge name={m.homeTeam} />
+              <span className="font-archivo" style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.8rem", fontWeight: 700, color: "var(--ink)" }}>{m.homeTeam}</span>
+              <span className="font-archivo" style={{ fontWeight: 900, fontSize: "0.85rem", color: "var(--ink)" }}>{m.homeScore}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              <TeamBadge name={m.awayTeam} />
+              <span className="font-archivo" style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.8rem", fontWeight: 700, color: "var(--ink)" }}>{m.awayTeam}</span>
+              <span className="font-archivo" style={{ fontWeight: 900, fontSize: "0.85rem", color: "var(--ink)" }}>{m.awayScore}</span>
+            </div>
+            <span className="font-archivo-narrow" style={{ display: "inline-block", padding: "2px 8px", fontSize: "0.68rem", fontWeight: 700, color: "var(--green)", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 4 }}>
+              ▶ Watch highlights
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function ScoresSection({ scores }: { scores: Score[] }) {
   if (scores.length === 0) {
     // Quiet week — say so instead of silently dropping the section
@@ -361,11 +393,12 @@ function ScoresSection({ scores }: { scores: Score[] }) {
 // ── Page ───────────────────────────────────────────────────────────
 
 export default async function HomePage() {
-  const [stories, scores, hotTake, liveMatches] = await Promise.all([
+  const [stories, scores, hotTake, liveMatches, highlights] = await Promise.all([
     getAllStories().catch(() => []),
     getWeekendScores().catch(() => []),
     getHotTake().catch(() => null),
     getLiveMatches().catch(() => []),
+    getRecentHighlights().catch(() => []),
   ]);
   const hasLive = liveMatches.length > 0;
   const hero      = stories.find((s) => (s as Story & { featured?: boolean }).featured) || stories[0];
@@ -430,6 +463,9 @@ export default async function HomePage() {
 
         {/* ── Weekend scores ── */}
         <ScoresSection scores={scores} />
+
+        {/* ── Latest highlights ── */}
+        <HighlightsSection highlights={highlights} />
 
         {/* ── Latest + sidebar ── */}
         <div className="home-side-grid">

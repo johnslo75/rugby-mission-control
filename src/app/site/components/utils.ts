@@ -26,6 +26,17 @@ export async function getLiveMatches(): Promise<Score[]> {
   return scores.filter((s) => s.status === "Live" || s.status === "live");
 }
 
+// Recent matches that have a highlight clip, across every competition — powers
+// the homepage Latest Highlights rail. Wider window than Weekend Results so
+// backfilled/older clips surface too.
+export async function getRecentHighlights(limit = 8): Promise<Score[]> {
+  const { scores } = await getFixtures({ daysBack: 30, daysForward: 0, ttlSeconds: 300 });
+  return scores
+    .filter((s) => s.highlightUrl)
+    .sort((a, b) => (a.matchDate < b.matchDate ? 1 : -1))
+    .slice(0, limit);
+}
+
 // Fixtures page — all matches including upcoming
 export async function getAllFixtures(): Promise<Score[]> {
   const { scores } = await getFixtures({
