@@ -140,6 +140,7 @@ function EditModal({ story, onSave, onClose, isNew }: {
                   <option value="News">📰 News</option>
                   <option value="Analysis">📐 Analysis</option>
                   <option value="Match Previews">🎥 Maeve on Matchday</option>
+                  <option value="Women's Rugby">🏉 Women&apos;s Rugby</option>
                 </optgroup>
                 {REGION_ORDER.map((region) => (
                   <optgroup key={region} label={REGION_LABELS[region]}>

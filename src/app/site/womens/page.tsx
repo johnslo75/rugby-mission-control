@@ -4,6 +4,7 @@ import SiteFooter from "../components/SiteFooter";
 import { getTeamLogo, teamInitials } from "@/lib/team-logos";
 import { getFixtures } from "@/lib/fixtures";
 import { WOMENS_COMPETITION_NAMES } from "@/lib/womens-refresh";
+import { getAllStories, formatDateShort } from "../components/utils";
 import LiveRefresher from "../components/LiveRefresher";
 import type { Score } from "../../api/scores/route";
 
@@ -31,12 +32,19 @@ function TeamCell({ name, align, logoUrl }: { name: string; align: "left" | "rig
 }
 
 export default async function WomensPage() {
-  const { scores: allScores, error } = await getFixtures({
-    daysBack: 7,
-    daysForward: 60, // women's calendar is sparser — look further ahead
-    ttlSeconds: 300,
-    competitions: WOMENS_COMPETITION_NAMES,
-  });
+  const [{ scores: allScores, error }, allStories] = await Promise.all([
+    getFixtures({
+      daysBack: 7,
+      daysForward: 60, // women's calendar is sparser — look further ahead
+      ttlSeconds: 300,
+      competitions: WOMENS_COMPETITION_NAMES,
+    }),
+    getAllStories().catch(() => []),
+  ]);
+
+  const womensStories = allStories
+    .filter((s) => (s.category || "").toLowerCase() === "women's rugby")
+    .slice(0, 6);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -79,6 +87,39 @@ export default async function WomensPage() {
         <p className="font-archivo-narrow" style={{ color: "var(--muted)", marginBottom: 32, fontSize: "0.9rem" }}>
           Six Nations · WXV · World Cup · PWR · internationals — fixtures and results
         </p>
+
+        {womensStories.length > 0 && (
+          <section style={{ marginBottom: 40 }}>
+            <div className="section-header">
+              <span className="section-header-label">Latest Stories</span>
+              <div className="section-header-rule" />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
+              {womensStories.map((s) => (
+                <a key={s.id} href={`/site/article/${s.slug}`} className="card" style={{ textDecoration: "none", overflow: "hidden", display: "block" }}>
+                  {s.imageUrl && (
+                    <div style={{ height: 130, background: "#1a2a1a", overflow: "hidden" }}>
+                      <img src={s.imageUrl} alt={s.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  )}
+                  <div style={{ padding: "12px 14px" }}>
+                    <p className="font-archivo" style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--ink)", lineHeight: 1.3, marginBottom: 6 }}>
+                      {s.title}
+                    </p>
+                    <p className="font-archivo-narrow" style={{ color: "var(--muted)", fontSize: "0.75rem" }}>
+                      {formatDateShort(s.date)}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <div className="section-header">
+          <span className="section-header-label">Fixtures &amp; Results</span>
+          <div className="section-header-rule" />
+        </div>
 
         {sortedDates.length === 0 && (
           <div style={{ textAlign: "center", padding: "60px 0", color: "var(--muted)" }}>
