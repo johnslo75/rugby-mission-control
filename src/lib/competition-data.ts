@@ -112,6 +112,60 @@ async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
   });
 }
 
+// ─── Standings via Highlightly (primary source) ──────────────────────────────
+// Clean structured tables with logos. League tables only — knockout-stage
+// competitions (Champions Cup now) correctly return nothing and fall back to
+// the Wikipedia scrape below.
+
+const HIGHLIGHTLY_LEAGUE_ID: Record<string, number> = {
+  "premiership": 11847,
+  "top-14": 14400,
+  "urc": 65460,
+  "super-rugby-pacific": 61205,
+};
+
+interface HLStandingRow {
+  position: number;
+  team?: { name?: string };
+  gamesPlayed?: number;
+  wins?: number;
+  draws?: number;
+  loses?: number;
+  scoredPoints?: number;
+  receivedPoints?: number;
+  points?: number;
+}
+
+async function fetchHighlightlyStandings(leagueId: number): Promise<StandingRow[]> {
+  const key = process.env.HIGHLIGHTLY_API_KEY;
+  if (!key) return [];
+  // Season is the starting year of the campaign (2025 = 2025/26)
+  const res = await fetch(`https://rugby.highlightly.net/standings?leagueId=${leagueId}&season=2025`, {
+    headers: { "x-rapidapi-key": key }, signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) throw new Error(`Highlightly standings ${leagueId} -> ${res.status}`);
+  const body = (await res.json()) as { groups?: { standings?: HLStandingRow[] }[] };
+  const rows = body.groups?.[0]?.standings ?? [];
+  return rows.map((r) => {
+    const won = r.wins ?? 0, drawn = r.draws ?? 0, pts = r.points ?? 0;
+    const pf = r.scoredPoints ?? 0, pa = r.receivedPoints ?? 0;
+    return {
+      position: r.position,
+      team: r.team?.name ?? "",
+      played: r.gamesPlayed ?? 0,
+      won,
+      drawn,
+      lost: r.loses ?? 0,
+      pf,
+      pa,
+      pd: pf - pa,
+      // Highlightly gives total points but not the bonus-point split; derive it
+      bp: Math.max(0, pts - (won * 4 + drawn * 2)),
+      pts,
+    };
+  }).filter((r) => r.team);
+}
+
 // ─── Standings: in-memory cache (1 hour TTL, returns stale on error) ──────────
 
 async function scrapeStandings(wikiUrl: string): Promise<StandingRow[]> {
@@ -174,10 +228,17 @@ export async function getCompetitionData(slug: string): Promise<{ fixtures: Fixt
       ? fetchFixtures(config.dbCompetitionNames).catch(() => [])
       : Promise.resolve([] as Fixture[]),
 
-    // Standings: in-memory cache, 1 hour TTL, returns stale on Wikipedia error
-    config.wikipediaUrl
-      ? cached(`standings-${slug}`, 3600, () => scrapeStandings(config.wikipediaUrl!)).catch(() => [])
-      : Promise.resolve([] as StandingRow[]),
+    // Standings: Highlightly first (clean, structured), Wikipedia scrape as
+    // fallback for competitions Highlightly doesn't table (e.g. Champions Cup).
+    // Cached 1 hour; returns last-good on error.
+    cached(`standings-${slug}`, 3600, async () => {
+      const hlId = HIGHLIGHTLY_LEAGUE_ID[slug];
+      if (hlId) {
+        const hl = await fetchHighlightlyStandings(hlId).catch(() => [] as StandingRow[]);
+        if (hl.length) return hl;
+      }
+      return config.wikipediaUrl ? scrapeStandings(config.wikipediaUrl) : [];
+    }).catch(() => [] as StandingRow[]),
   ]);
 
   return { fixtures, standings };

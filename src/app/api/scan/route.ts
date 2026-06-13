@@ -72,6 +72,11 @@ const RSS_FEEDS = [
   // Google News
   { name: "Google News Ireland Rugby", url: "https://news.google.com/rss/search?q=ireland+rugby&hl=en-IE&gl=IE&ceid=IE:en" },
   { name: "Google News RWC 2027", url: "https://news.google.com/rss/search?q=rugby+world+cup+2027&hl=en-IE&gl=IE&ceid=IE:en" },
+  // Competition-specific searches so club competitions aren't drowned out by the Irish feeds
+  { name: "Google News Premiership", url: "https://news.google.com/rss/search?q=%22Gallagher+Premiership%22+rugby&hl=en-GB&gl=GB&ceid=GB:en" },
+  { name: "Google News Top 14", url: "https://news.google.com/rss/search?q=%22Top+14%22+rugby&hl=en-GB&gl=GB&ceid=GB:en" },
+  { name: "Google News Champions Cup", url: "https://news.google.com/rss/search?q=%22Champions+Cup%22+rugby+union&hl=en-GB&gl=GB&ceid=GB:en" },
+  { name: "Google News URC", url: "https://news.google.com/rss/search?q=%22United+Rugby+Championship%22&hl=en-GB&gl=GB&ceid=GB:en" },
 ];
 
 const IRISH_SOURCES = new Set(["IRFU", "Leinster Rugby", "Munster Rugby", "Ulster Rugby", "Connacht Rugby"]);
@@ -172,19 +177,39 @@ function deduplicateAndRank(stories: RawStory[]): (RawStory & { mentionCount: nu
   }
 
   const now = Date.now();
-  return Array.from(groups.values())
+  const sortedByScore = Array.from(groups.values())
     .map((s) => {
       const ageHours = (now - new Date(s.pubDate).getTime()) / 3_600_000;
       const recencyScore = Math.max(0, 10 - ageHours / 2.4); // 0–10 over 24h
       const mentionScore = s.mentionCount * 2;                // reward cross-source coverage
       const sourceScore = Math.min(8, s.sourceWeight);        // weighted source credibility
       const upvoteScore = Math.min(5, (s.upvotes ?? 0) / 200);
-      const irishBoost = s.isIrish ? 6 : 0;                  // 🇮🇪 Irish stories float to top
+      const irishBoost = s.isIrish ? 3 : 0;                  // 🇮🇪 Irish lean, but no longer a landslide
       s.score = recencyScore + mentionScore + sourceScore + upvoteScore + irishBoost;
       return s;
     })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 5);
+    .sort((a, b) => b.score - a.score);
+
+  // Diversity guard: cap Irish stories at 3 of the top 5 so club competitions
+  // (Premiership, Top 14, Champions Cup) always get a look in. Without this a
+  // big Irish news day would still shut everything else out.
+  const IRISH_CAP = 3;
+  const top: typeof sortedByScore = [];
+  let irishUsed = 0;
+  for (const s of sortedByScore) {
+    if (s.isIrish && irishUsed >= IRISH_CAP) continue;
+    top.push(s);
+    if (s.isIrish) irishUsed++;
+    if (top.length >= 5) break;
+  }
+  // Backfill if the cap left us short (e.g. an overwhelmingly Irish news day)
+  if (top.length < 5) {
+    for (const s of sortedByScore) {
+      if (!top.includes(s)) top.push(s);
+      if (top.length >= 5) break;
+    }
+  }
+  return top;
 }
 
 // ─── Claude generation ────────────────────────────────────────────────────────
@@ -216,7 +241,7 @@ For each of the top 3 stories return exactly this JSON structure:
   ]
 }
 
-Always prioritise: Irish angle, shithousery moments, hot takes, controversy, underdog stories. Avoid generic match recaps.
+Cover all major competitions — Premiership, Top 14, URC, Champions Cup and internationals — not just Irish teams. Lead with an Irish angle when there genuinely is one, but a Premiership or Top 14 final, a Top 14 title race or a Champions Cup shock deserves the same sharp treatment. Prioritise: shithousery moments, hot takes, controversy, underdog stories. Avoid generic match recaps.
 Return only valid JSON, no other text.`;
 
 async function generateWithClaude(stories: (RawStory & { mentionCount: number })[]) {
