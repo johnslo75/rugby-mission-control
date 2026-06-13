@@ -44,8 +44,9 @@ interface HLMatch {
 }
 
 export async function refreshLiveScores(): Promise<void> {
-  const key = process.env.HIGHLIGHTLY_API_KEY;
+  const key: string | undefined = process.env.HIGHLIGHTLY_API_KEY;
   if (!key) return;
+  const apiKey: string = key; // narrowed value for use inside the closure below
 
   const today = new Date().toISOString().slice(0, 10);
   const { rows } = await pool.query(
@@ -62,7 +63,7 @@ export async function refreshLiveScores(): Promise<void> {
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const res = await fetch(`https://rugby.highlightly.net/matches?date=${today}&limit=100`, {
-          headers: { "x-rapidapi-key": key }, signal: AbortSignal.timeout(12000),
+          headers: { "x-rapidapi-key": apiKey }, signal: AbortSignal.timeout(12000),
         });
         if (!res.ok) throw new Error(`-> ${res.status}`);
         return ((await res.json()) as { data?: HLMatch[] }).data ?? [];
