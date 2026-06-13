@@ -49,6 +49,17 @@ export async function register() {
     };
     setTimeout(() => runWomensRefresh("startup"), 10000);
 
+    // One-time historical backfill of Top 14 results + highlights (guarded by a
+    // settings flag inside the function, so it's a no-op after the first run).
+    setTimeout(async () => {
+      try {
+        const { backfillLeagueHighlights } = await import("./lib/backfill-highlights");
+        await backfillLeagueHighlights(14400, "French Top 14", "backfill_top14_v1");
+      } catch (err) {
+        console.error("[Cron] Top 14 highlights backfill failed:", err);
+      }
+    }, 25000);
+
     const cron = await import("node-cron");
 
     cron.default.schedule("*/15 * * * *", () => runScoresRefresh("15min"));
