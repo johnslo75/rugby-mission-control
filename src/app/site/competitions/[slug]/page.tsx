@@ -179,6 +179,15 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
                               <div className="font-archivo-narrow" style={{ fontSize: "0.65rem", color: "var(--muted)", marginTop: 2 }}>
                                 {new Date(f.date).toLocaleDateString("en-IE", { weekday: "short", day: "numeric", month: "short" })}
                               </div>
+                              {f.highlightUrl && (
+                                <div>
+                                  <a href={f.highlightUrl} target="_blank" rel="noopener noreferrer"
+                                    className="font-archivo-narrow"
+                                    style={{ display: "inline-block", marginTop: 4, padding: "1px 7px", fontSize: "0.66rem", fontWeight: 700, color: "var(--green)", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 4, textDecoration: "none" }}>
+                                    ▶ Watch highlights
+                                  </a>
+                                </div>
+                              )}
                             </>
                           ) : f.status === "live" ? (
                             <span style={{ background: "#00a86b", color: "#fff", fontWeight: 700, fontSize: "0.65rem", padding: "2px 7px", borderRadius: 4 }}>LIVE</span>

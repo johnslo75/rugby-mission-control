@@ -65,6 +65,7 @@ export interface Fixture {
   date: string;
   venue: string;
   status: "scheduled" | "live" | "completed";
+  highlightUrl: string | null;
 }
 
 export interface StandingRow {
@@ -108,6 +109,7 @@ async function fetchFixtures(dbCompetitionNames: string[]): Promise<Fixture[]> {
       date: s.matchDate,
       venue: "",
       status: isLive ? "live" : isCompleted ? "completed" : "scheduled",
+      highlightUrl: s.highlightUrl ?? null,
     };
   });
 }
