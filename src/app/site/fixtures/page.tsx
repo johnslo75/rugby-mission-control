@@ -113,6 +113,15 @@ export default async function FixturesPage() {
           All competitions{lastRefresh ? ` · scores updated ${timeAgo(lastRefresh.at)}` : " · updates every 15 minutes"}
         </p>
 
+        {anyLive && (
+          <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "var(--radius)", padding: "10px 16px", marginBottom: 24, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", animation: "livePulse 1.6s infinite", flexShrink: 0 }} />
+            <p className="font-archivo-narrow" style={{ fontSize: "0.82rem", color: "#166534", fontWeight: 700 }}>
+              Live scores update automatically every 30 seconds — no need to refresh.
+            </p>
+          </div>
+        )}
+
         {/* Only warn when data is older than two refresh cycles — routine
             cache turnover on a quiet page isn't an interruption */}
         {stale && updatedAt && Date.now() - updatedAt > 30 * 60 * 1000 && (
